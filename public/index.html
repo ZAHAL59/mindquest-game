@@ -398,9 +398,49 @@ canvas#stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
       <button onclick="saveExam()" style="width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#F59E0B,#F97316);color:#1a0800;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:900;cursor:pointer;box-shadow:0 5px 20px rgba(245,158,11,.3);">
         &#128190; Save Exam
       </button>
-      <div id="exam-saved-status" style="display:none;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:12px;padding:1rem;text-align:center;">
-        <div style="font-size:.95rem;font-weight:800;color:var(--green);margin-bottom:.3rem;">&#9989; Exam saved!</div>
-        <div style="font-size:.78rem;color:var(--muted);">Students can now open the <strong style="color:var(--text);">Exam tab</strong> in Student view.</div>
+
+      <!-- Saved confirmation -->
+      <div id="exam-saved-status" style="display:none;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:12px;padding:1rem;text-align:center;"></div>
+
+      <!-- Preview Panel -->
+      <div id="preview-panel" style="display:none;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.22);border-radius:16px;padding:1.1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
+          <div style="font-size:.68rem;font-weight:800;color:#C084FC;letter-spacing:1.5px;text-transform:uppercase;">&#128065;&#65039; Question Preview</div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="previewPrev()" id="prev-btn" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;">&#8592; Prev</button>
+            <span id="preview-counter" style="font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;color:var(--muted);padding:5px 8px;">0 / 0</span>
+            <button onclick="previewNext()" id="next-btn" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;">Next &#8594;</button>
+          </div>
+        </div>
+
+        <!-- Current question card -->
+        <div id="preview-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;margin-bottom:.8rem;min-height:120px;">
+          <div style="color:var(--muted);font-size:.82rem;text-align:center;">Click "Generate Preview" to load questions</div>
+        </div>
+
+        <!-- Approve / Reject controls -->
+        <div style="display:flex;gap:8px;margin-bottom:.8rem;flex-wrap:wrap;">
+          <button onclick="approveQ()" id="approve-btn" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.12);color:#10B981;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">&#10003; Approve</button>
+          <button onclick="rejectQ()" id="reject-btn" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:#EF4444;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">&#10007; Remove</button>
+          <button onclick="regenerateQ()" id="regen-q-btn" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(124,58,237,.35);background:rgba(124,58,237,.1);color:#C084FC;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">&#8635; Regenerate</button>
+        </div>
+
+        <!-- Section overview dots -->
+        <div id="preview-dots" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.8rem;"></div>
+
+        <!-- Generate button -->
+        <button onclick="generatePreview()" id="gen-preview-btn"
+          style="width:100%;padding:11px;border:none;border-radius:11px;background:linear-gradient(135deg,#7C3AED,#06B6D4);color:white;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;">
+          &#129302; Generate &amp; Preview All Questions
+        </button>
+        <div id="preview-gen-status" style="font-size:.75rem;color:var(--muted);text-align:center;margin-top:.5rem;display:none;"></div>
+
+        <!-- Approve all + confirm -->
+        <div style="display:flex;gap:8px;margin-top:.6rem;">
+          <button onclick="approveAll()" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.08);color:#10B981;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">&#10003;&#10003; Approve All</button>
+          <button onclick="confirmExamReady()" id="confirm-exam-btn" style="flex:1;padding:9px;border-radius:10px;border:none;background:linear-gradient(135deg,#10B981,#06B6D4);color:white;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;display:none;">&#128640; Confirm &amp; Publish</button>
+        </div>
+        <div id="approved-count" style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.4rem;"></div>
       </div>
     </div>
   </div>
@@ -632,6 +672,7 @@ let _assignedTopics=null;
 let _currentRole='student';
 let _examConfig=null;
 let _examState=null;
+let _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
 let AI_MODE=true; // always on — key is configured on Vercel server
 let GEMINI_API_KEY='__SERVER__'; // key is server-side, not needed in browser
 let AI_CACHE={};
@@ -1823,13 +1864,197 @@ function saveExam(){
   };
   localStorage.setItem('mq_exam_config',JSON.stringify(_examConfig));
   sections.forEach(s=>{delete AI_CACHE[s.id];});
+  // Reset preview state
+  _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
   if(st){
     st.style.display='block';st.style.background='rgba(16,185,129,.08)';st.style.borderColor='rgba(16,185,129,.3)';
     const timerStr=_examConfig.totalTimer>0?` · ${_examConfig.totalTimer/60} min`:'';
-    st.innerHTML=`<div style="font-size:1rem;font-weight:800;color:var(--green);margin-bottom:.4rem;">✅ Exam Saved!</div>
-      <div style="font-size:.8rem;color:var(--muted);line-height:1.7;"><strong style="color:var(--text);">${_examConfig.name}</strong><br>${_examConfig.totalQ} questions · ${_examConfig.totalMarks} marks${timerStr}<br>${sections.length} section${sections.length>1?'s':''}: ${sections.map(s=>TOPICS.find(t=>t.id===s.id)?.icon||'').join(' ')}</div>
-      <div style="font-size:.75rem;color:var(--teal);margin-top:.5rem;font-weight:700;">📝 Students can now open the Exam tab →</div>`;
-    setTimeout(()=>{if(st)st.style.display='none';},5000);
+    st.innerHTML=`<div style="font-size:1rem;font-weight:800;color:var(--green);margin-bottom:.3rem;">✅ Exam Saved!</div>
+      <div style="font-size:.8rem;color:var(--muted);line-height:1.6;"><strong style="color:var(--text);">${_examConfig.name}</strong><br>
+      ${_examConfig.totalQ} questions · ${_examConfig.totalMarks} marks${timerStr}</div>`;
+    setTimeout(()=>{if(st)st.style.display='none';},4000);
+  }
+  // Show the preview panel
+  const pp=$('preview-panel');if(pp)pp.style.display='block';
+  // Scroll to it
+  setTimeout(()=>pp?.scrollIntoView({behavior:'smooth',block:'nearest'}),300);
+}
+
+/* ══ QUESTION PREVIEW SYSTEM ══ */
+
+async function generatePreview(){
+  if(!_examConfig)return;
+  const btn=$('gen-preview-btn'),st=$('preview-gen-status');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generating...';}
+  if(st){st.style.display='block';st.textContent='Fetching questions from AI...';}
+  _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
+
+  for(let si=0;si<_examConfig.sections.length;si++){
+    const sec=_examConfig.sections[si];
+    const topic=TOPICS.find(t=>t.id===sec.id);if(!topic)continue;
+    if(st)st.textContent=`Section ${si+1}/${_examConfig.sections.length}: ${topic.n}...`;
+    let data=topic.data;
+    let isAI=false;
+    try{
+      const ai=await generateQuestions(topic);
+      if(ai&&(ai.qs?.length>0||ai.pairs?.length>0||ai.cats)){data=ai;isAI=true;}
+    }catch(e){console.warn('Preview AI failed for',sec.id);}
+    const queue=buildQueueFromData(topic,data);
+    const src=queue&&queue.length>0?queue:buildQueueFromData(topic,topic.data);
+    for(let i=0;i<sec.qCount;i++){
+      _preview.qs.push({...src[i%Math.max(1,src.length)],topicId:sec.id,topicName:topic.n,topicIcon:topic.icon,isAI});
+    }
+    if(si<_examConfig.sections.length-1)await new Promise(r=>setTimeout(r,700));
+  }
+
+  if(btn){btn.disabled=false;btn.textContent='🔄 Re-generate All';}
+  if(st){st.textContent=`✅ ${_preview.qs.length} questions ready for review`;st.style.color='#10B981';}
+  // Auto-approve all initially
+  _preview.qs.forEach((_,i)=>_preview.approved.add(i));
+  renderPreviewCard();
+  renderPreviewDots();
+  updateApprovedCount();
+}
+
+function renderPreviewCard(){
+  const q=_preview.qs[_preview.idx];
+  const card=$('preview-card');
+  const counter=$('preview-counter');
+  if(counter)counter.textContent=`${_preview.idx+1} / ${_preview.qs.length}`;
+  if(!q||!card)return;
+
+  const isRemoved=_preview.removed.has(_preview.idx);
+  const isApproved=_preview.approved.has(_preview.idx);
+
+  // AI / Built-in badge
+  const srcBadge=q.isAI
+    ?`<span style="background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(6,182,212,.2));border:1px solid rgba(124,58,237,.4);border-radius:8px;padding:2px 8px;font-size:.62rem;font-weight:800;color:#C084FC;">🤖 AI Generated</span>`
+    :`<span style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:2px 8px;font-size:.62rem;font-weight:700;color:var(--muted);">📚 Built-in</span>`;
+
+  // Status badge
+  const statusBadge=isRemoved
+    ?`<span style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:2px 8px;font-size:.62rem;font-weight:800;color:#EF4444;">❌ Removed</span>`
+    :isApproved
+    ?`<span style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:2px 8px;font-size:.62rem;font-weight:800;color:#10B981;">✅ Approved</span>`
+    :`<span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:2px 8px;font-size:.62rem;font-weight:800;color:var(--gold);">⏳ Pending</span>`;
+
+  // Extract readable question text from the question data
+  const qText=getQuestionText(q);
+
+  card.style.opacity=isRemoved?'0.4':'1';
+  card.innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:.7rem;flex-wrap:wrap;">
+      <span style="background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.25);border-radius:8px;padding:2px 8px;font-size:.62rem;font-weight:800;color:var(--teal);">${q.topicIcon} ${q.topicName}</span>
+      ${srcBadge}${statusBadge}
+    </div>
+    <div style="font-size:.88rem;font-weight:700;line-height:1.6;color:var(--text);margin-bottom:.6rem;">${qText.question}</div>
+    ${qText.options?`<div style="display:flex;flex-direction:column;gap:4px;">${qText.options.map((o,i)=>`<div style="font-size:.8rem;padding:5px 9px;border-radius:7px;background:${o.correct?'rgba(16,185,129,.12)':'rgba(255,255,255,.04)'};border:1px solid ${o.correct?'rgba(16,185,129,.3)':'rgba(255,255,255,.07)'};color:${o.correct?'#10B981':'var(--text)'};">${['A','B','C','D'][i]}. ${o.text}${o.correct?' ✓':''}</div>`).join('')}</div>`:''}
+    ${qText.hint?`<div style="margin-top:.6rem;font-size:.75rem;color:var(--gold);background:rgba(245,158,11,.07);border-radius:7px;padding:5px 9px;">💡 ${qText.hint}</div>`:''}`;
+
+  // Update button states
+  const ab=$('approve-btn'),rb=$('reject-btn');
+  if(ab)ab.style.opacity=isRemoved?'0.4':'1';
+  if(rb)rb.textContent=isRemoved?'↩ Restore':'✗ Remove';
+}
+
+function getQuestionText(q){
+  const d=q.d;if(!d)return{question:'(No question data)',options:null,hint:''};
+  // Scenario / choice questions
+  if(q.type==='scenario'&&d.sit)return{question:d.sit,options:d.choices?.map((c,i)=>({text:c,correct:c===d.ans})),hint:d.hint||''};
+  if(q.type==='mathops'&&d.eq)return{question:`Rule: ${d.rule}\n\nSolve: ${d.eq}`,options:d.choices?.map(c=>({text:c,correct:c===d.ans})),hint:d.hint||''};
+  if(q.type==='missingtile'&&d.seq)return{question:`Find the missing term:\n${d.seq.join(' → ')}`,options:d.choices?.map(c=>({text:c,correct:c===d.ans})),hint:d.hint||''};
+  if(q.type==='familytree'&&d.q)return{question:`${d.story}\n\n${d.q}`,options:d.opts?.map(o=>({text:o,correct:o===d.ans})),hint:d.hint||''};
+  if(q.type==='conveyor'&&d.seq)return{question:`Complete the series:\n${d.seq.join(' → ')}`,options:[d.ans,...(d.d||[])].sort(()=>Math.random()-.5).map(c=>({text:c,correct:c===d.ans})),hint:d.hint||''};
+  if(q.type==='cipher'&&d.enc)return{question:`Decode this word: ${d.enc}\nRule: ${d.rule}`,options:null,hint:`Answer: ${d.dec}`};
+  if(q.type==='reflection')return{question:`${d.rtype==='mirror'?'Mirror':'Water'} image of: ${d.orig}`,options:d.opts?.map(o=>({text:o,correct:o===d.ans})),hint:d.hint||''};
+  if(q.type==='memory')return{question:'Memory flip card game — match related pairs',options:null,hint:''};
+  if(q.type==='sortbasket')return{question:'Sort items into the correct categories',options:null,hint:''};
+  if(q.type==='maze')return{question:d.ins||'Navigate the grid following the directions',options:null,hint:d.hint||''};
+  if(q.type==='venn')return{question:`Place items in the Venn diagram:\n${d.cA} | Both | ${d.cB}`,options:null,hint:d.hint||''};
+  if(q.type==='scratch')return{question:`Statement: ${d.stmt}\n\nWhat is the hidden assumption?`,options:[d.assumption,...(d.decoys||[])].sort(()=>Math.random()-.5).map(c=>({text:c,correct:c===d.assumption})),hint:d.hint||''};
+  if(q.type==='dice3d')return{question:d.q||'Cube & Dice question',options:d.choices?.map(c=>({text:c,correct:c===d.ans})),hint:d.hint||''};
+  if(q.type==='pattern')return{question:`Rule: ${d.rule}\nGiven: ${(d.given||[]).map(v=>v?'●':'○').join(' ')}\nComplete the next cells:`,options:null,hint:d.hint||''};
+  if(q.type==='sortseq')return{question:d.q||'Arrange in the correct order',options:null,hint:`Correct order: ${(d.correct||[]).join(' → ')}`};
+  return{question:`${q.type} question`,options:null,hint:''};
+}
+
+function previewNext(){if(_preview.idx<_preview.qs.length-1){_preview.idx++;renderPreviewCard();renderPreviewDots();}}
+function previewPrev(){if(_preview.idx>0){_preview.idx--;renderPreviewCard();renderPreviewDots();}}
+
+function approveQ(){
+  _preview.approved.add(_preview.idx);
+  _preview.removed.delete(_preview.idx);
+  renderPreviewCard();renderPreviewDots();updateApprovedCount();
+  if(_preview.idx<_preview.qs.length-1)setTimeout(previewNext,300);
+}
+
+function rejectQ(){
+  if(_preview.removed.has(_preview.idx)){
+    _preview.removed.delete(_preview.idx);_preview.approved.add(_preview.idx);
+  }else{
+    _preview.removed.add(_preview.idx);_preview.approved.delete(_preview.idx);
+  }
+  renderPreviewCard();renderPreviewDots();updateApprovedCount();
+}
+
+async function regenerateQ(){
+  const q=_preview.qs[_preview.idx];if(!q)return;
+  const btn=$('regen-q-btn');if(btn){btn.disabled=true;btn.textContent='⏳';}
+  const topic=TOPICS.find(t=>t.id===q.topicId);
+  if(topic){
+    delete AI_CACHE[topic.id];
+    try{
+      const ai=await generateQuestions(topic);
+      if(ai){
+        const queue=buildQueueFromData(topic,ai);
+        if(queue&&queue.length>0){
+          _preview.qs[_preview.idx]={...queue[_preview.idx%queue.length],topicId:q.topicId,topicName:q.topicName,topicIcon:q.topicIcon,isAI:true};
+          _preview.approved.add(_preview.idx);_preview.removed.delete(_preview.idx);
+        }
+      }
+    }catch(e){console.warn('Regen failed:',e.message);}
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔄 Regenerate';}
+  renderPreviewCard();renderPreviewDots();updateApprovedCount();
+}
+
+function approveAll(){
+  _preview.qs.forEach((_,i)=>{_preview.approved.add(i);_preview.removed.delete(i);});
+  renderPreviewCard();renderPreviewDots();updateApprovedCount();
+}
+
+function updateApprovedCount(){
+  const total=_preview.qs.length,removed=_preview.removed.size,approved=_preview.approved.size;
+  const el=$('approved-count');
+  if(el)el.textContent=`${approved} approved · ${removed} removed · ${total-approved-removed} pending`;
+  const cb=$('confirm-exam-btn');
+  if(cb)cb.style.display=approved>0?'block':'none';
+}
+
+function renderPreviewDots(){
+  const cont=$('preview-dots');if(!cont)return;
+  cont.innerHTML=_preview.qs.map((_,i)=>{
+    const isApproved=_preview.approved.has(i),isRemoved=_preview.removed.has(i),isCurrent=i===_preview.idx;
+    const col=isRemoved?'#EF4444':isApproved?'#10B981':'#F59E0B';
+    return`<div onclick="_preview.idx=${i};renderPreviewCard();renderPreviewDots();" title="Q${i+1}"
+      style="width:${isCurrent?'24px':'10px'};height:10px;border-radius:5px;background:${col};cursor:pointer;transition:all .2s;opacity:${isCurrent?'1':'0.6'};border:${isCurrent?`2px solid white`:'none'};"></div>`;
+  }).join('');
+}
+
+function confirmExamReady(){
+  // Filter out removed questions and update exam config
+  const kept=_preview.qs.filter((_,i)=>!_preview.removed.has(i));
+  if(kept.length===0){alert('No questions approved!');return;}
+  // Store the previewed+approved questions directly
+  _examConfig._previewedQs=kept;
+  localStorage.setItem('mq_exam_config',JSON.stringify(_examConfig));
+  const pp=$('preview-panel');
+  if(pp){
+    pp.innerHTML=`<div style="text-align:center;padding:1rem;">
+      <div style="font-size:1.8rem;margin-bottom:.4rem;">🎓</div>
+      <div style="font-size:.95rem;font-weight:800;color:var(--green);margin-bottom:.3rem;">Exam Published!</div>
+      <div style="font-size:.78rem;color:var(--muted);">${kept.length} questions approved and ready for students.</div>
+    </div>`;
   }
 }
 
@@ -1866,6 +2091,15 @@ function renderExamStudentView(){
 /* ── Start Exam ── */
 async function startExam(){
   const cfg=_examConfig;if(!cfg)return;
+
+  // If teacher already previewed and approved questions, use those directly
+  if(cfg._previewedQs&&cfg._previewedQs.length>0){
+    _examState={config:cfg,qs:shuf(cfg._previewedQs),qIdx:0,marksScored:0,results:[],startTime:Date.now(),totalTimerInt:null,qTimerInt:null,totalSecsLeft:cfg.totalTimer||0,examEnded:false};
+    _rawShowScr('exam-screen');
+    if(cfg.totalTimer>0)startExamTotalTimer();
+    loadExamQ();
+    return;
+  }
   const btn=$('start-exam-btn');
 
   // Show full loading overlay
