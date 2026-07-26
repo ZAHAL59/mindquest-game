@@ -1398,8 +1398,8 @@ async function callGemini(prompt, isTest=false) {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: isTest ? 30 : 4096  // increased to avoid truncation
+      temperature: 1.2,  // higher = more varied output each generation
+      maxOutputTokens: isTest ? 30 : 4096
     }
   };
   if (!isTest) body.generationConfig.responseMimeType = 'application/json';
@@ -1551,16 +1551,48 @@ async function generateQuestions(topic) {
     default: return null;
   }
 
-  // Keep prompt short to reduce token usage and rate limit risk
-  const fullPrompt = `Generate questions for Class 7 Indian students (age 12-13), mental ability topic: ${topic.n}.
+  // Variety seeds — different each call so Gemini generates fresh questions
+  const themes = [
+    'animals, nature, science',
+    'sports, games, fitness',
+    'food, cooking, daily life',
+    'travel, geography, places in India',
+    'school, books, learning',
+    'technology, gadgets, space',
+    'history, festivals, culture',
+    'jobs, professions, society',
+    'environment, plants, seasons',
+    'music, art, creativity',
+  ];
+  const names = [
+    'Arjun, Priya, Meena, Ravi',
+    'Sneha, Karan, Anita, Vijay',
+    'Divya, Rohit, Sunita, Arun',
+    'Kavya, Mohan, Geeta, Suresh',
+    'Pooja, Nikhil, Lakshmi, Rahul',
+  ];
+  const seed = Math.floor(Math.random() * 10000);
+  const theme = themes[Math.floor(Math.random() * themes.length)];
+  const nameSet = names[Math.floor(Math.random() * names.length)];
+  const difficultyWords = ['easy and basic','moderate','slightly challenging','varied in difficulty'];
+  const difficulty = difficultyWords[Math.floor(Math.random() * difficultyWords.length)];
+
+  const fullPrompt = `Generate UNIQUE questions for Class 7 Indian students (age 12-13), mental ability topic: ${topic.n}.
+Variety seed: ${seed} — use this to ensure completely different questions from previous responses.
+Theme to focus on: ${theme}.
+Use these Indian names if needed: ${nameSet}.
+Difficulty: ${difficulty}.
 ${schema}
-Rules: age-appropriate, use Indian names/context where natural, factually correct. Return ONLY valid JSON.`;
+Rules: age-appropriate, factually correct, completely different from typical examples. Return ONLY valid JSON.`;
 
   const result = await callGemini(fullPrompt);
 
   // Transform result into the format our game expects
   const transformed = transformAIResult(topic, result);
-  AI_CACHE[cacheKey] = transformed;
+  // Only cache for free practice (not exam preview which needs fresh questions each time)
+  if (!_examState && !_preview.qs.length) {
+    AI_CACHE[cacheKey] = transformed;
+  }
   return transformed;
 }
 
