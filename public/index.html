@@ -1519,9 +1519,9 @@ function parseGeminiJSON(text) {
 }
 
 /* ── Generate questions for a topic ── */
-async function generateQuestions(topic) {
+async function generateQuestions(topic, forceRefresh=false) {
   const cacheKey = topic.id;
-  if (AI_CACHE[cacheKey]) return AI_CACHE[cacheKey];
+  if (!forceRefresh && AI_CACHE[cacheKey]) return AI_CACHE[cacheKey];
 
   let schema = '';
   let topicHint = topic.n;
@@ -1589,8 +1589,8 @@ Rules: age-appropriate, factually correct, completely different from typical exa
 
   // Transform result into the format our game expects
   const transformed = transformAIResult(topic, result);
-  // Only cache for free practice (not exam preview which needs fresh questions each time)
-  if (!_examState && !_preview.qs.length) {
+  // Only cache for free practice — never cache preview/exam calls
+  if (!forceRefresh) {
     AI_CACHE[cacheKey] = transformed;
   }
   return transformed;
@@ -1994,7 +1994,7 @@ async function generatePreview(){
     let data=topic.data;
     let isAI=false;
     try{
-      const ai=await generateQuestions(topic);
+      const ai=await generateQuestions(topic, true); // forceRefresh — always fresh in preview
       if(ai&&(ai.qs?.length>0||ai.pairs?.length>0||ai.cats)){data=ai;isAI=true;}
     }catch(e){console.warn('Preview AI failed for',sec.id);}
     const queue=buildQueueFromData(topic,data);
@@ -2110,7 +2110,7 @@ async function regenerateQ(){
   if(topic){
     delete AI_CACHE[topic.id];
     try{
-      const ai=await generateQuestions(topic);
+      const ai=await generateQuestions(topic, true); // forceRefresh
       if(ai){
         const queue=buildQueueFromData(topic,ai);
         if(queue&&queue.length>0){
