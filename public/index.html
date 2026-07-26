@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>MindQuest · Mental Ability Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--bg:#0C0A1A;--bg2:#13102B;--text:#EEEAF8;--muted:#7C77A0;--purple:#7C3AED;--purple2:#A855F7;--glow:#C084FC;--teal:#06B6D4;--gold:#F59E0B;--green:#10B981;--red:#EF4444;--pink:#EC4899;--border:rgba(255,255,255,.1);--card:rgba(255,255,255,.05);}
+html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
+canvas#stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.scr{display:none;position:fixed;inset:0;z-index:10;flex-direction:column;overflow-y:auto;overflow-x:hidden;}
+.scr.on{display:flex;}
+#home{align-items:center;padding:1.5rem 1rem 3rem;}
+.logo{text-align:center;margin-bottom:1.2rem;}
+.logo svg{width:68px;height:68px;display:block;margin:0 auto .5rem;filter:drop-shadow(0 0 16px #7C3AED88);animation:floatY 3s ease-in-out infinite;}
+@keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.logo h1{font-family:'Orbitron',sans-serif;font-size:clamp(1.7rem,5vw,2.5rem);font-weight:900;background:linear-gradient(130deg,#C084FC,#06B6D4,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;}
+.logo p{font-size:.83rem;color:var(--muted);}
+.stats{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.1rem;}
+.stat{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:30px;padding:5px 13px;font-size:.78rem;font-weight:700;}
+.grid-lbl{font-size:.66rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:.75rem;}
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(142px,1fr));gap:9px;width:100%;max-width:800px;}
+.tc{border-radius:15px;padding:.85rem .75rem;cursor:pointer;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);transition:transform .18s,box-shadow .18s;}
+.tc:hover{transform:translateY(-4px) scale(1.025);box-shadow:0 14px 36px rgba(0,0,0,.5);}
+.tc::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 25%,rgba(255,255,255,.11),transparent 65%);pointer-events:none;}
+.tc-icon{font-size:1.75rem;margin-bottom:4px;display:block;}
+.tc-name{font-size:.84rem;font-weight:800;line-height:1.2;}
+.tc-tag{font-size:.62rem;color:rgba(255,255,255,.48);margin-top:2px;}
+.hud{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(12,10,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);flex-shrink:0;}
+.hud-back{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:8px;line-height:1;}
+.hud-back:hover{color:var(--text);}
+.hud-score{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px #F59E0B55;min-width:58px;}
+.hud-hearts{display:flex;gap:2px;}
+.hrt{font-size:.9rem;transition:.2s;}
+.hrt.dead{filter:grayscale(1);opacity:.2;transform:scale(.75);}
+.hud-ring{position:relative;width:38px;height:38px;flex-shrink:0;}
+.hud-ring svg{transform:rotate(-90deg);}
+.rbg{fill:none;stroke:rgba(255,255,255,.07);stroke-width:3;}
+.rfill{fill:none;stroke:var(--teal);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .3s;}
+.rnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.62rem;font-weight:700;}
+.hud-xp{flex:1;}
+.hud-xp-lbl{font-size:.6rem;color:var(--muted);margin-bottom:2px;}
+.xp-track{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.xp-bar{height:100%;background:linear-gradient(90deg,#7C3AED,#C084FC);border-radius:3px;transition:width .5s;}
+.chip{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);border-radius:20px;padding:3px 10px;font-size:.67rem;font-weight:800;color:#C084FC;white-space:nowrap;}
+.qp{font-size:.67rem;color:var(--muted);white-space:nowrap;}
+#gs{flex:1;}
+#ga{flex:1;padding:1rem;display:flex;flex-direction:column;align-items:center;overflow-y:auto;}
+.stage{width:100%;max-width:650px;animation:stIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes stIn{from{opacity:0;transform:translateY(18px) scale(.97);}to{opacity:1;transform:none;}}
+.gtag{display:inline-block;font-size:.63rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--teal);background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.25);border-radius:20px;padding:3px 11px;margin-bottom:6px;}
+.gq{font-size:clamp(.9rem,2.5vw,1.1rem);font-weight:800;line-height:1.45;margin-bottom:.5rem;text-align:center;}
+.ibox{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:13px;padding:10px 13px;font-size:.86rem;font-weight:600;line-height:1.55;}
+.hint-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.22);border-radius:10px;padding:8px 12px;margin-top:.65rem;font-size:.78rem;color:var(--gold);text-align:center;display:none;}
+.hint-box.vis{display:block;animation:fadeUp .3s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:none;}}
+.abar{display:flex;gap:8px;justify-content:center;margin-top:.85rem;flex-wrap:wrap;}
+.btn-ok{background:linear-gradient(135deg,#10B981,#06B6D4);color:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;padding:10px 20px;border:none;border-radius:50px;cursor:pointer;box-shadow:0 5px 15px rgba(16,185,129,.3);transition:transform .15s;}
+.btn-ok:hover{transform:scale(1.04);}
+.btn-ok:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.btn-hint{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:var(--gold);font-family:'Nunito',sans-serif;font-size:.83rem;font-weight:700;padding:10px 14px;border-radius:50px;cursor:pointer;}
+.btn-hint:hover{background:rgba(245,158,11,.2);}
+.btn-skip{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-size:.83rem;font-weight:700;padding:10px 14px;border-radius:50px;cursor:pointer;}
+.btn-skip:hover{color:var(--text);}
+/* MEMORY */
+.mem-grid{display:grid;gap:7px;justify-content:center;}
+.mcard{cursor:pointer;position:relative;border-radius:12px;}
+.mcard-in{width:100%;height:100%;position:relative;transition:transform .45s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;}
+.mcard.flip .mcard-in{transform:rotateY(180deg);}
+.mfront,.mback{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:5px;}
+.mfront{background:linear-gradient(135deg,#1A1140,#271858);border:2px solid rgba(124,58,237,.35);}
+.mfront-ico{font-size:1.4rem;}
+.mback{background:linear-gradient(135deg,#6D28D9,#A855F7);border:2px solid rgba(192,132,252,.4);transform:rotateY(180deg);font-size:.7rem;font-weight:700;line-height:1.3;color:#fff;}
+.mcard.ok .mback{background:linear-gradient(135deg,#059669,#06B6D4);border-color:var(--green);animation:mcOk .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes mcOk{0%,100%{transform:rotateY(180deg) scale(1);}50%{transform:rotateY(180deg) scale(1.1);}}
+/* SORT BASKET */
+.sbank{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;min-height:50px;padding:7px;border:2px dashed rgba(255,255,255,.13);border-radius:12px;margin-bottom:.85rem;}
+.sitem{padding:7px 13px;border-radius:10px;font-size:.85rem;font-weight:700;cursor:grab;user-select:none;touch-action:none;background:linear-gradient(135deg,#6D28D9,#A855F7);box-shadow:0 3px 10px rgba(109,40,217,.4);transition:transform .15s;}
+.sitem:hover{transform:scale(1.06) rotate(-1deg);}
+.baskets{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;}
+.bkt{flex:1;min-width:125px;max-width:210px;border-radius:13px;padding:.7rem;border:2px dashed rgba(255,255,255,.16);min-height:76px;text-align:center;transition:border-color .2s,background .2s;}
+.bkt.over{border-color:var(--gold);background:rgba(245,158,11,.09);}
+.bkt-lbl{font-size:.74rem;font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.bkt-items{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
+.bkt-tag{font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.1);}
+/* CONVEYOR */
+.conv-seq{display:flex;align-items:center;gap:5px;justify-content:center;flex-wrap:wrap;padding:.55rem;background:rgba(255,255,255,.03);border-radius:12px;margin-bottom:.5rem;}
+.snode{width:58px;height:55px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800;border:2px solid rgba(124,58,237,.45);background:rgba(124,58,237,.18);}
+.snode.blank{border-style:dashed;border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.07);color:var(--gold);font-size:1.3rem;}
+.sarrow{color:var(--muted);font-size:.78rem;}
+.conv-arena{position:relative;width:100%;height:220px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:.5rem;}
+.ftile{position:absolute;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;border:2px solid rgba(255,255,255,.2);background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(6,182,212,.25));cursor:pointer;user-select:none;animation:tfall linear forwards;}
+.ftile:hover{border-color:var(--gold);background:rgba(245,158,11,.25);}
+@keyframes tfall{from{transform:translateY(-80px);}to{transform:translateY(280px);}}
+/* CIPHER */
+.cipher-pairs{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:.45rem 0;}
+.cpair{text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 9px;min-width:44px;transition:all .2s;}
+.cpair.hit{background:rgba(16,185,129,.15);border-color:#10B981;}
+.cpair-enc{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:var(--gold);}
+.cpair-shift{font-size:.58rem;color:var(--muted);margin:2px 0;}
+.cpair-dec{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:var(--teal);}
+.shift-row{display:flex;align-items:center;gap:11px;justify-content:center;margin:.45rem 0;}
+.sbtn{width:40px;height:40px;border-radius:50%;border:2px solid rgba(124,58,237,.4);background:rgba(124,58,237,.2);color:var(--text);font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.sbtn:hover{background:rgba(124,58,237,.4);transform:scale(1.1);}
+.shift-num{font-family:'Orbitron',sans-serif;font-size:1.25rem;font-weight:700;color:var(--purple2);min-width:38px;text-align:center;}
+.decoded-word{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700;color:var(--teal);letter-spacing:3px;text-align:center;padding:.45rem;border-bottom:2px solid rgba(6,182,212,.3);min-height:42px;}
+/* FAMILY TREE */
+.tree-wrap{overflow-x:auto;margin:.45rem 0;padding:0 4px;}
+/* DRAG ORDER */
+.slots-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:.55rem;}
+.slot{min-width:76px;min-height:50px;border-radius:12px;border:2px dashed rgba(6,182,212,.35);background:rgba(6,182,212,.04);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--muted);transition:all .2s;padding:4px;text-align:center;}
+.slot.over{border-color:var(--teal);background:rgba(6,182,212,.14);}
+.slot.filled{border-style:solid;border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.12);color:var(--text);}
+.cards-bank{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:7px;border:2px dashed rgba(255,255,255,.1);border-radius:12px;}
+.ocard{padding:8px 13px;border-radius:11px;font-size:.84rem;font-weight:700;cursor:grab;user-select:none;background:linear-gradient(135deg,rgba(236,72,153,.2),rgba(124,58,237,.2));border:2px solid rgba(236,72,153,.35);transition:transform .15s;touch-action:none;}
+.ocard:hover{transform:scale(1.05) rotate(1deg);}
+.ocard.gone{opacity:.1;pointer-events:none;}
+/* MAZE */
+.maze-grid{display:grid;gap:3px;margin:.5rem auto;}
+.mcell{width:40px;height:40px;border-radius:8px;border:1px solid rgba(124,58,237,.14);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s;}
+.mcell.trail{background:rgba(6,182,212,.12);}
+.mcell.player{background:rgba(124,58,237,.3);}
+.mcell.goal{background:rgba(16,185,129,.2);}
+.dir-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:5px;margin:.45rem auto 0;}
+.dpbtn{background:rgba(124,58,237,.2);border:2px solid rgba(124,58,237,.38);border-radius:12px;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--text);}
+.dpbtn:hover{background:rgba(124,58,237,.4);transform:scale(1.06);}
+.dpbtn:active{transform:scale(.92);}
+.dpbtn.rst{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.35);color:var(--gold);}
+.move-log{font-size:.65rem;color:var(--teal);text-align:center;min-height:16px;margin-top:3px;}
+/* VENN */
+.venn-outer{position:relative;width:100%;max-width:355px;height:185px;margin:.45rem auto .35rem;}
+.venn-chip{padding:6px 12px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#6D28D9,#A855F7);transition:all .15s;user-select:none;}
+.venn-chip:hover{transform:scale(1.05);}
+.venn-chip.sel{box-shadow:0 0 0 3px var(--gold);}
+.venn-chip.used{opacity:.14;pointer-events:none;}
+.vzone{position:absolute;top:0;height:100%;cursor:pointer;}
+.vzone.over{background:rgba(245,158,11,.07);}
+.vplaced{position:absolute;display:flex;flex-direction:column;gap:3px;align-items:center;pointer-events:none;}
+.vpt{font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.18);color:#fff;}
+/* SCENARIO */
+.scenario-box{background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(6,182,212,.09));border:1px solid rgba(124,58,237,.28);border-radius:15px;padding:13px;margin-bottom:.7rem;text-align:center;}
+.scenario-emoji{font-size:1.85rem;margin-bottom:4px;}
+.scenario-text{font-size:.87rem;font-weight:700;line-height:1.6;white-space:pre-line;}
+.consequence{border-radius:12px;padding:10px 12px;margin-top:.55rem;font-size:.83rem;font-weight:700;line-height:1.5;display:none;}
+.consequence.vis{display:block;animation:fadeUp .3s;}
+/* SCRATCH */
+.scratch-card{position:relative;width:290px;height:128px;border-radius:16px;overflow:hidden;margin:0 auto .55rem;cursor:crosshair;}
+.scratch-reveal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:1rem;text-align:center;font-size:.88rem;font-weight:700;color:var(--teal);line-height:1.5;background:linear-gradient(135deg,rgba(6,182,212,.14),rgba(124,58,237,.09));border:2px solid rgba(6,182,212,.3);border-radius:16px;}
+/* 3D CUBE */
+.cube-scene{width:130px;height:130px;perspective:550px;margin:.45rem auto;}
+.cube-3d{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
+.cface{position:absolute;width:110px;height:110px;border:2px solid;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;backface-visibility:visible;}
+.cf-front{transform:translateZ(55px);}
+.cf-back{transform:translateZ(-55px) rotateY(180deg);}
+.cf-right{transform:rotateY(90deg) translateZ(55px);}
+.cf-left{transform:rotateY(-90deg) translateZ(55px);}
+.cf-top{transform:rotateX(90deg) translateZ(55px);}
+.cf-bottom{transform:rotateX(-90deg) translateZ(55px);}
+.face-val{font-size:1.55rem;font-weight:900;line-height:1;}
+.face-lbl{font-size:.52rem;font-weight:700;opacity:.6;text-transform:uppercase;}
+.rot-pad{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:.35rem 0;}
+.rbtn{padding:6px 12px;border-radius:10px;border:2px solid rgba(124,58,237,.35);background:rgba(124,58,237,.12);font-size:.8rem;font-weight:700;cursor:pointer;transition:all .15s;color:var(--text);}
+.rbtn:hover{background:rgba(124,58,237,.3);}
+/* MISSING TILE */
+.seq-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;padding:.65rem;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;margin-bottom:.75rem;}
+.stile{width:66px;height:66px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:clamp(.75rem,2.5vw,1.05rem);font-weight:800;text-align:center;border:2px solid rgba(124,58,237,.4);background:rgba(124,58,237,.18);}
+.stile.blank{border-style:dashed;border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.07);color:var(--gold);}
+.stile.solved{border-style:solid!important;border-color:#10B981!important;background:rgba(16,185,129,.2)!important;color:#10B981!important;}
+/* MATH OPS */
+.rule-box{background:rgba(245,158,11,.1);border:2px solid rgba(245,158,11,.28);border-radius:14px;padding:11px;margin-bottom:.65rem;}
+.rule-lbl{font-size:.62rem;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.rule-text{font-size:.92rem;font-weight:700;text-align:center;}
+.eq-box{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:13px;padding:.75rem;text-align:center;margin-bottom:.75rem;}
+.eq-text{font-family:'Orbitron',sans-serif;font-size:1.35rem;font-weight:700;letter-spacing:2px;}
+/* PATTERN */
+.pat-grid{display:grid;gap:5px;margin:.45rem auto;}
+.pcell{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .18s;cursor:default;}
+.pcell.given{background:rgba(124,58,237,.3);border:2px solid rgba(124,58,237,.5);}
+.pcell.blank{background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.14);}
+.pcell.target{background:rgba(245,158,11,.07);border:2px dashed rgba(245,158,11,.5);cursor:pointer;}
+.pcell.target:hover{background:rgba(245,158,11,.2);}
+.pcell.painted{background:rgba(124,58,237,.35);border:2px solid rgba(124,58,237,.6);}
+.pcell.right{background:rgba(16,185,129,.25)!important;border-color:#10B981!important;}
+.pcell.wrong{background:rgba(239,68,68,.2)!important;border-color:#EF4444!important;}
+/* REFLECTION */
+.ref-orig{background:rgba(255,255,255,.05);border:2px solid rgba(124,58,237,.4);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:2.7rem;font-weight:900;}
+.ref-q{background:rgba(245,158,11,.06);border:2px dashed rgba(245,158,11,.4);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:2.7rem;font-weight:900;color:var(--gold);}
+.ref-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-width:390px;margin:.45rem auto 0;}
+.ropt{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.13);border-radius:13px;padding:12px 5px;text-align:center;cursor:pointer;transition:all .18s;font-family:monospace;font-size:1.8rem;font-weight:900;}
+.ropt:hover{border-color:#C084FC;background:rgba(124,58,237,.15);}
+.ropt.right{border-color:#10B981!important;background:rgba(16,185,129,.25)!important;}
+.ropt.wrong{border-color:#EF4444!important;background:rgba(239,68,68,.18)!important;}
+.ropt-lbl{font-size:.58rem;color:var(--muted);margin-top:3px;font-family:'Nunito',sans-serif;}
+/* FEEDBACK */
+.fp{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:900;text-align:center;pointer-events:none;animation:fpA 1.3s ease forwards;}
+@keyframes fpA{0%{opacity:0;transform:translate(-50%,-50%) scale(.5);}20%{opacity:1;transform:translate(-50%,-56%) scale(1.1);}70%{opacity:1;transform:translate(-50%,-60%);}100%{opacity:0;transform:translate(-50%,-76%) scale(.9);}}
+.fp-ico{font-size:3.8rem;}
+.fp-word{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:900;text-shadow:0 0 20px currentColor;}
+.fp-pts{font-size:.88rem;font-weight:800;color:var(--gold);margin-top:2px;}
+.fp.ok .fp-word{color:#10B981;}
+.fp.no .fp-word{color:#EF4444;}
+.combo{position:fixed;top:70px;right:.75rem;z-index:800;background:linear-gradient(135deg,#F59E0B,#F97316);color:#1a0a00;border-radius:11px;padding:4px 11px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;animation:cbbounce .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+@keyframes cbbounce{from{transform:scale(0) rotate(-10deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+.ptcl{position:fixed;pointer-events:none;z-index:999;font-size:1.2rem;animation:pflyA var(--d,1s) ease-out forwards;}
+@keyframes pflyA{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--dx,0px),var(--dy,-110px)) scale(.2) rotate(var(--r,360deg));}}
+.lv-ov{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(12,10,26,.92);}
+.lv-box{text-align:center;padding:2.1rem 1.8rem;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(6,182,212,.18));border:2px solid rgba(124,58,237,.5);border-radius:22px;animation:lvpop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes lvpop{from{transform:scale(.5) rotate(-4deg);}to{transform:none;}}
+.lv-star{font-size:3rem;animation:spin 2s linear infinite;display:block;margin-bottom:.4rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lv-box h2{font-family:'Orbitron',sans-serif;font-size:1.55rem;font-weight:900;background:linear-gradient(135deg,#F59E0B,#FCD34D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.lv-box p{color:var(--muted);margin:.3rem 0 .9rem;font-size:.86rem;}
+.btn-cont{background:linear-gradient(135deg,#7C3AED,#06B6D4);color:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;padding:9px 20px;border:none;border-radius:50px;cursor:pointer;}
+#results{align-items:center;justify-content:flex-start;padding:1.8rem 1.4rem 2.5rem;text-align:center;}
+.res-trophy{font-size:3.8rem;animation:trophyIn .7s cubic-bezier(.34,1.56,.64,1);}
+@keyframes trophyIn{from{transform:scale(0) rotate(-15deg);}to{transform:scale(1);}}
+.res-title{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#C084FC,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:5px 0;}
+.res-pts{font-family:'Orbitron',sans-serif;font-size:2.8rem;font-weight:900;color:var(--gold);text-shadow:0 0 22px #F59E0B55;}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:340px;margin:.9rem auto;}
+.rc{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:11px;padding:10px 5px;}
+.rv{font-size:1.4rem;font-weight:800;}
+.rl{font-size:.66rem;color:var(--muted);margin-top:1px;}
+.bar-sec{max-width:340px;margin:0 auto 1rem;text-align:left;}
+.bi{margin-bottom:7px;}
+.bi-lbl{display:flex;justify-content:space-between;font-size:.74rem;margin-bottom:3px;color:var(--muted);}
+.bi-track{height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.bi-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<!-- ══ LANDING — Role Picker ══ -->
+<div class="scr on" id="home">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;gap:2rem;">
+    <div class="logo" style="margin-bottom:0;">
+      <svg viewBox="0 0 70 70" style="width:72px;height:72px;display:block;margin:0 auto .5rem;filter:drop-shadow(0 0 16px #7C3AED88);animation:floatY 3s ease-in-out infinite;">
+        <defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C084FC"/><stop offset="50%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs>
+        <polygon points="35,3 62,18 62,52 35,67 8,52 8,18" fill="url(#gg)" opacity=".9"/>
+        <polygon points="35,3 62,18 35,35" fill="rgba(255,255,255,.18)"/>
+        <polygon points="35,35 62,18 62,52" fill="rgba(0,0,0,.18)"/>
+        <polygon points="35,35 8,18 8,52" fill="rgba(255,255,255,.08)"/>
+        <text x="35" y="43" text-anchor="middle" fill="white" font-size="17" font-weight="900" font-family="Orbitron">M</text>
+      </svg>
+      <h1>MINDQUEST</h1>
+      <p style="font-size:.83rem;color:var(--muted);">Class 7 &middot; SDA &middot; Mental Ability</p>
+    </div>
+    <div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;">
+      <button onclick="enterStudentView()"
+        style="width:100%;padding:20px 18px;border-radius:18px;border:2px solid rgba(124,58,237,.4);background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.12));color:var(--text);font-family:Nunito,sans-serif;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:transform .15s,box-shadow .15s;"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 30px rgba(124,58,237,.3)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <span style="font-size:2.2rem;flex-shrink:0;">&#127891;</span>
+        <div>
+          <div style="font-size:1rem;font-weight:800;margin-bottom:3px;">I am a Student</div>
+          <div style="font-size:.75rem;color:var(--muted);font-weight:600;">Free practice &middot; Take exams &middot; Track progress</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);font-size:1.2rem;">&rarr;</span>
+      </button>
+      <button onclick="enterTeacherView()"
+        style="width:100%;padding:20px 18px;border-radius:18px;border:2px solid rgba(245,158,11,.35);background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(249,115,22,.07));color:var(--text);font-family:Nunito,sans-serif;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:transform .15s,box-shadow .15s;"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 30px rgba(245,158,11,.2)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <span style="font-size:2.2rem;flex-shrink:0;">&#128105;&#8205;&#127979;</span>
+        <div>
+          <div style="font-size:1rem;font-weight:800;margin-bottom:3px;">I am a Teacher</div>
+          <div style="font-size:.75rem;color:var(--muted);font-weight:600;">Create exams &middot; Set sections &middot; Configure marks</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);font-size:1.2rem;">&rarr;</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STUDENT SCREEN ══ -->
+<div class="scr" id="student-screen">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(12,10,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="showScr('home')" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:8px;">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:#C084FC;">&#127891; Student</div>
+    <div style="flex:1;"></div>
+    <div class="stat" style="font-size:.72rem;">&#127942; <span id="hBest">0</span></div>
+    <div class="stat" style="font-size:.72rem;">&#11088; Lv <span id="hLv">1</span></div>
+    <div class="stat" style="font-size:.72rem;">&#128293; <span id="hStreak">0</span></div>
+  </div>
+  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(12,10,26,.7);">
+    <button id="stab-practice" onclick="switchStudentTab('practice')"
+      style="flex:1;padding:11px;background:rgba(124,58,237,.15);border:none;border-bottom:2px solid #7C3AED;color:#C084FC;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">
+      &#127918; Free Practice
+    </button>
+    <button id="stab-exam" onclick="switchStudentTab('exam')"
+      style="flex:1;padding:11px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">
+      &#128221; Exam
+    </button>
+  </div>
+  <div id="stab-practice-content" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:1rem;">
+    <div class="grid-lbl" id="grid-lbl">Tap a topic to start playing</div>
+    <div class="topic-grid" id="tgrid"></div>
+  </div>
+  <div id="stab-exam-content" style="flex:1;overflow-y:auto;display:none;flex-direction:column;align-items:center;padding:1.5rem 1rem;gap:.9rem;">
+    <div id="exam-ready-box" style="width:100%;max-width:480px;background:linear-gradient(135deg,rgba(6,182,212,.12),rgba(124,58,237,.1));border:2px solid rgba(6,182,212,.3);border-radius:18px;padding:1.5rem;text-align:center;">
+      <div style="font-size:2.8rem;margin-bottom:.5rem;">&#128221;</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1.15rem;font-weight:900;color:var(--teal);margin-bottom:.35rem;" id="exam-title-display">No Exam Set</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:1rem;" id="exam-meta-display">Ask your teacher to create an exam first.</div>
+      <div id="exam-summary-list" style="text-align:left;margin-bottom:1rem;display:none;"></div>
+      <button id="start-exam-btn" onclick="startExam()" style="display:none;width:100%;max-width:320px;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#06B6D4,#7C3AED);color:white;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 5px 22px rgba(6,182,212,.35);">
+        &#128640; Start Exam
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TEACHER SCREEN ══ -->
+<div class="scr" id="teacher-screen">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(12,10,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(245,158,11,.2);flex-shrink:0;">
+    <button onclick="showScr('home')" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:8px;">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:.88rem;font-weight:700;color:var(--gold);">&#128105;&#8205;&#127979; Teacher &mdash; Exam Creator</div>
+    <div style="flex:1;"></div>
+    <div id="teacher-ai-badge" style="display:none;font-size:.65rem;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:2px 9px;color:#C084FC;font-weight:800;">&#129302; AI On</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:.9rem;">
+      <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:16px;padding:1.1rem;">
+        <div style="font-size:.68rem;font-weight:800;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.85rem;">&#9881;&#65039; Exam Settings</div>
+        <div style="margin-bottom:.75rem;">
+          <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px;">Exam Title</div>
+          <input id="exam-name" type="text" value="Class 7 Mental Ability Test"
+            style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;outline:none;"
+            onfocus="this.style.borderColor='rgba(245,158,11,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.14)'">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem;">
+          <div>
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px;">Total Time Limit</div>
+            <select id="exam-timer" style="width:100%;padding:9px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;outline:none;cursor:pointer;">
+              <option value="0">No limit</option>
+              <option value="10">10 min</option>
+              <option value="15">15 min</option>
+              <option value="20" selected>20 min</option>
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">1 hour</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px;">Per-Question Timer</div>
+            <select id="q-timer" style="width:100%;padding:9px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;outline:none;cursor:pointer;">
+              <option value="0">No limit</option>
+              <option value="30">30 sec</option>
+              <option value="45" selected>45 sec</option>
+              <option value="60">60 sec</option>
+              <option value="90">90 sec</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem;">
+          <div>
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px;">Marks per Question</div>
+            <select id="marks-per-q" onchange="updateTotals()" style="width:100%;padding:9px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;outline:none;cursor:pointer;">
+              <option value="1">1 mark</option>
+              <option value="2" selected>2 marks</option>
+              <option value="3">3 marks</option>
+              <option value="5">5 marks</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding-bottom:2px;">
+            <label style="display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;cursor:pointer;">
+              <input type="checkbox" id="allow-hints" style="accent-color:#7C3AED;width:15px;height:15px;"> Allow Hints
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;cursor:pointer;">
+              <input type="checkbox" id="allow-skip" style="accent-color:#7C3AED;width:15px;height:15px;"> Allow Skip
+            </label>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;cursor:pointer;">
+          <input type="checkbox" id="show-answer" checked style="accent-color:#7C3AED;width:15px;height:15px;"> Show correct answer after each question
+        </label>
+      </div>
+      <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:16px;padding:1.1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+          <div style="font-size:.68rem;font-weight:800;color:#C084FC;letter-spacing:1.5px;text-transform:uppercase;">&#128218; Sections &amp; Questions</div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="teacherSelectAll()" style="padding:5px 11px;border-radius:8px;border:1px solid rgba(6,182,212,.35);background:rgba(6,182,212,.1);color:var(--teal);font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;">&#10003; All</button>
+            <button onclick="teacherClearAll()" style="padding:5px 11px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;">&#10007; None</button>
+          </div>
+        </div>
+        <div id="teacher-topic-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:.85rem;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:11px;padding:10px;text-align:center;">
+            <div style="font-size:.62rem;color:var(--muted);margin-bottom:3px;">Total Questions</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700;color:#C084FC;" id="total-q-count">0</div>
+          </div>
+          <div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);border-radius:11px;padding:10px;text-align:center;">
+            <div style="font-size:.62rem;color:var(--muted);margin-bottom:3px;">Total Marks</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gold);" id="total-marks-count">0</div>
+          </div>
+        </div>
+      </div>
+      <button onclick="saveExam()" style="width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#F59E0B,#F97316);color:#1a0800;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:900;cursor:pointer;box-shadow:0 5px 20px rgba(245,158,11,.3);">
+        &#128190; Save Exam
+      </button>
+      <div id="exam-saved-status" style="display:none;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:12px;padding:1rem;text-align:center;">
+        <div style="font-size:.95rem;font-weight:800;color:var(--green);margin-bottom:.3rem;">&#9989; Exam saved!</div>
+        <div style="font-size:.78rem;color:var(--muted);">Students can now open the <strong style="color:var(--text);">Exam tab</strong> in Student view.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EXAM SCREEN ══ -->
+<div class="scr" id="exam-screen">
+  <div class="hud" id="exam-hud">
+    <button class="hud-back" onclick="confirmExitExam()">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;color:var(--teal);white-space:nowrap;" id="exam-q-counter">Q 1/10</div>
+    <div style="flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:var(--gold);" id="exam-marks-display">0 / 0 marks</div>
+    <div id="exam-total-timer" style="display:none;align-items:center;gap:4px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:3px 10px;">
+      <span style="font-size:.65rem;color:#FCA5A5;">&#9201;</span>
+      <span style="font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;color:#EF4444;" id="exam-total-time-val">20:00</span>
+    </div>
+    <div class="hud-ring"><svg width="38" height="38" viewBox="0 0 38 38"><circle class="rbg" cx="19" cy="19" r="15"/><circle class="rfill" id="exam-rfill" cx="19" cy="19" r="15" stroke-dasharray="94" stroke-dashoffset="0"/></svg><div class="rnum" id="exam-rnum">45</div></div>
+  </div>
+  <div style="height:4px;background:rgba(255,255,255,.06);flex-shrink:0;">
+    <div id="exam-progress-bar" style="height:100%;background:linear-gradient(90deg,#06B6D4,#7C3AED);width:0%;transition:width .4s;"></div>
+  </div>
+  <div id="exam-ga" style="flex:1;padding:1rem;display:flex;flex-direction:column;align-items:center;overflow-y:auto;">
+    <div class="stage" id="exam-stage"></div>
+  </div>
+</div>
+
+<!-- ══ EXAM RESULTS ══ -->
+<div class="scr" id="exam-results">
+  <div style="text-align:center;padding:2rem 1.4rem 2.5rem;width:100%;max-width:560px;margin:0 auto;">
+    <div style="font-size:3.5rem;animation:trophyIn .7s cubic-bezier(.34,1.56,.64,1);" id="er-trophy">&#127942;</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;background:linear-gradient(135deg,#C084FC,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:5px 0;" id="er-title">EXAM COMPLETE</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem;" id="er-exam-name">Class 7 Mental Ability Test</div>
+    <div style="background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(6,182,212,.12));border:2px solid rgba(124,58,237,.35);border-radius:18px;padding:1.4rem;margin-bottom:1rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.8rem;">
+        <div style="text-align:center;"><div style="font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--gold);" id="er-score">0</div><div style="font-size:.7rem;color:var(--muted);">marks scored</div></div>
+        <div style="text-align:center;"><div style="font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--teal);" id="er-pct">0%</div><div style="font-size:.7rem;color:var(--muted);">percentage</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="background:rgba(16,185,129,.1);border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:#10B981;" id="er-correct">0</div><div style="font-size:.6rem;color:var(--muted);">Correct</div></div>
+        <div style="background:rgba(239,68,68,.1);border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:#EF4444;" id="er-wrong">0</div><div style="font-size:.6rem;color:var(--muted);">Wrong</div></div>
+        <div style="background:rgba(245,158,11,.1);border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:var(--gold);" id="er-skipped">0</div><div style="font-size:.6rem;color:var(--muted);">Skipped</div></div>
+        <div style="background:rgba(6,182,212,.1);border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:var(--teal);" id="er-time-taken">&#8212;</div><div style="font-size:.6rem;color:var(--muted);">Time</div></div>
+      </div>
+    </div>
+    <div style="font-size:1.5rem;font-weight:900;margin-bottom:.4rem;" id="er-grade"></div>
+    <div style="text-align:left;margin-bottom:1rem;" id="er-section-breakdown"></div>
+    <div style="text-align:left;margin-bottom:1.2rem;">
+      <div style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.6rem;">&#128203; Question Review</div>
+      <div id="er-review" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="retryExam()" style="padding:10px 20px;border:none;border-radius:50px;background:linear-gradient(135deg,#06B6D4,#7C3AED);color:white;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;">&#128260; Retry</button>
+      <button onclick="showScr('student-screen');switchStudentTab('exam')" style="padding:10px 20px;border:1px solid var(--border);border-radius:50px;background:rgba(255,255,255,.06);color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;">&#128221; Exams</button>
+      <button onclick="showScr('home')" style="padding:10px 20px;border:1px solid var(--border);border-radius:50px;background:rgba(255,255,255,.04);color:var(--muted);font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;">&#127968; Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FREE PRACTICE GAME ══ -->
+<div class="scr" id="gs">
+  <div class="hud">
+    <button class="hud-back" onclick="goHome()">&#8592;</button>
+    <div class="hud-score" id="hScore">0</div>
+    <div class="hud-hearts" id="hHearts"><span class="hrt">&#10084;&#65039;</span><span class="hrt">&#10084;&#65039;</span><span class="hrt">&#10084;&#65039;</span></div>
+    <div class="hud-ring"><svg width="38" height="38" viewBox="0 0 38 38"><circle class="rbg" cx="19" cy="19" r="15"/><circle class="rfill" id="rfill" cx="19" cy="19" r="15" stroke-dasharray="94" stroke-dashoffset="0"/></svg><div class="rnum" id="rnum">&#8734;</div></div>
+    <div class="hud-xp"><div class="hud-xp-lbl">XP &middot; Lv <span id="hLvG">1</span></div><div class="xp-track"><div class="xp-bar" id="xpbar" style="width:0%"></div></div></div>
+    <div class="chip" id="chip">Topic</div>
+    <div class="qp" id="qp">1/6</div>
+  </div>
+  <div id="ga"><div class="stage" id="stage"></div></div>
+</div>
+
+<!-- ══ PRACTICE RESULTS ══ -->
+<div class="scr" id="results">
+  <div class="res-trophy" id="rTrophy">&#127942;</div>
+  <div class="res-title" id="rTitle">EXCELLENT!</div>
+  <div class="res-pts" id="rPts">0</div>
+  <div style="color:var(--muted);font-size:.78rem;margin-top:1px;">total points</div>
+  <div class="res-grid">
+    <div class="rc"><div class="rv" id="rCorr">0</div><div class="rl">&#9989; Correct</div></div>
+    <div class="rc"><div class="rv" id="rCombo">0x</div><div class="rl">&#128293; Combo</div></div>
+    <div class="rc"><div class="rv" id="rFast">&#8212;</div><div class="rl">&#9889; Fastest</div></div>
+  </div>
+  <div class="bar-sec" id="rBars"></div>
+  <button class="btn-ok" onclick="retryGame()" style="margin:5px;">&#128260; Play Again</button>
+  <button class="btn-ok" onclick="goHome()" style="margin:5px;background:linear-gradient(135deg,#374151,#4B5563);">&#127968; Home</button>
+</div>
+
+<script>
+(()=>{const c=document.getElementById('stars'),ctx=c.getContext('2d');const r=()=>{c.width=innerWidth;c.height=innerHeight};r();addEventListener('resize',r);const s=Array.from({length:100},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.3,sp:Math.random()*.00018+.00005,op:Math.random()*.6+.1}));const d=()=>{ctx.clearRect(0,0,c.width,c.height);s.forEach(st=>{st.y-=st.sp;if(st.y<0){st.y=1;st.x=Math.random();}ctx.beginPath();ctx.arc(st.x*c.width,st.y*c.height,st.r,0,Math.PI*2);ctx.fillStyle=`rgba(200,180,255,${st.op})`;ctx.fill();});requestAnimationFrame(d)};d();})();
+
+const TOPICS=[
+{id:'analogy',n:'Analogy',icon:'🔗',color:'#7C3AED',tag:'Memory Flip',gt:'memory',data:{pairs:[['Pen','Writer'],['Brush','Painter'],['Doctor','Hospital'],['Teacher','School'],['Fish','Water'],['Bird','Air'],['Sun','Day'],['Moon','Night'],['Knife','Cut'],['Pen','Write']]}},
+{id:'classification',n:'Classification',icon:'🗂️',color:'#EC4899',tag:'Sort Basket',gt:'sortbasket',data:{cats:['Fruits','Vegetables','Animals'],items:{Fruits:['Mango','Apple','Banana','Grapes'],Vegetables:['Carrot','Radish','Potato','Spinach'],Animals:['Tiger','Eagle','Snake','Dolphin']}}},
+{id:'series',n:'Series Completion',icon:'🔢',color:'#06B6D4',tag:'Catch the Term',gt:'conveyor',data:{qs:[
+  {seq:['2','4','8','16','?'],ans:'32',d:['24','28','36'],hint:'Each term × 2'},
+  {seq:['A','C','E','G','?'],ans:'I',d:['H','J','K'],hint:'Every alternate letter of the alphabet'},
+  {seq:['1','4','9','16','?'],ans:'25',d:['20','24','36'],hint:'Perfect squares: 1²,2²,3²,4²,5²=25'},
+  {seq:['3','6','12','24','?'],ans:'48',d:['36','42','54'],hint:'Each term × 2'},
+  {seq:['Z','X','V','T','?'],ans:'R',d:['Q','S','P'],hint:'Reverse alphabet, skipping one letter each step'},
+  {seq:['1','1','2','3','5','?'],ans:'8',d:['7','9','10'],hint:'Fibonacci: each term = sum of the two before it'},
+]}},
+{id:'coding',n:'Coding Decoding',icon:'🔐',color:'#F59E0B',tag:'Cipher Wheel',gt:'cipher',data:{qs:[
+  {enc:'NBJM',shift:1,dec:'MAIL',rule:'Each letter was shifted +1 forward to encode. Subtract 1 to decode.'},
+  {enc:'DBUD',shift:1,dec:'CAVE',rule:'Each letter +1 to encode. Subtract 1 from each letter to decode.'},
+  {enc:'GPPD',shift:1,dec:'FOOD',rule:'+1 shift encoding. Use −1 to decode each letter.'},
+  {enc:'MJPO',shift:1,dec:'LION',rule:'Each letter moved +1 forward. Move −1 to decode.'},
+  {enc:'TDIPPM',shift:1,dec:'SCHOOL',rule:'+1 shift. Subtract 1 from each letter to get the original word.'},
+]}},
+{id:'blood',n:'Blood Relation',icon:'👨‍👩‍👧',color:'#EF4444',tag:'Family Tree',gt:'familytree',data:{qs:[
+  {story:"Ram is the son of Mohan. Priya is Mohan's wife. Sita is Ram's sister.",nodes:[{l:'Mohan',r:'male',top:1},{l:'Priya',r:'female',top:1},{l:'Ram',r:'male',top:0},{l:'Sita',r:'female',top:0}],q:'What is Priya to Ram?',opts:['Mother','Aunt','Sister','Grandmother'],ans:'Mother',hint:"Priya is Mohan's wife. Ram is Mohan's son. So Priya is Ram's Mother."},
+  {story:"Anita's father has only one son — Ravi.",nodes:[{l:'Father',r:'male',top:1},{l:'Mother',r:'female',top:1},{l:'Ravi',r:'male',top:0},{l:'Anita',r:'female',top:0}],q:'What is Anita to Ravi?',opts:['Sister','Wife','Cousin','Daughter'],ans:'Sister',hint:"Father's only son is Ravi. Anita is also Father's child. So Anita is Ravi's Sister."},
+  {story:"P is the mother of Q. R is the brother of P. S is the father of R.",nodes:[],q:'What is S to Q?',opts:['Grandfather','Uncle','Father','Great-grandfather'],ans:'Grandfather',hint:"S is father of R. R is brother of P. P is mother of Q. So S is Q's Grandfather."},
+]}},
+{id:'puzzle',n:'Puzzle Test',icon:'🧩',color:'#8B5CF6',tag:'Drag to Order',gt:'sortseq',data:{qs:[
+  {q:'Arrange steps to make tea in the correct order:',items:['Add milk & sugar','Drink','Add tea leaves','Boil water','Pour in cup'],correct:['Boil water','Add tea leaves','Add milk & sugar','Pour in cup','Drink']},
+  {q:"Arrange stages of a plant's life (earliest first):",items:['Fruit','Bud','Seed','Flower','Plant'],correct:['Seed','Plant','Bud','Flower','Fruit']},
+  {q:'Arrange from smallest to largest unit:',items:['State','Village','Continent','Country','City'],correct:['Village','City','State','Country','Continent']},
+]}},
+{id:'direction',n:'Direction Sense',icon:'🧭',color:'#10B981',tag:'Navigate the Grid',gt:'maze',data:{qs:[
+  {ins:'Start at 🏠 (bottom-left). Go 3 steps North, then 3 steps East to reach 🏆.',grid:5,start:[4,0],goal:[1,3],hint:'North = up (row−1). East = right (col+1). 3 North then 3 East.'},
+  {ins:'Start at 🏠. Go 2 East, then 3 North, then 1 West to reach 🏆.',grid:5,start:[4,0],goal:[1,1],hint:'East(+col), North(−row), West(−col). Track each step on the grid.'},
+  {ins:'Start at 🏠 (bottom-right). Go 4 steps North to reach 🏆.',grid:5,start:[4,4],goal:[0,4],hint:'North = straight up. 4 steps up from bottom-right.'},
+]}},
+{id:'venn',n:'Venn Diagram',icon:'🔵',color:'#3B82F6',tag:'Drop into Circles',gt:'venn',data:{qs:[
+  {cA:'Animals',cB:'Can Fly',items:['Eagle','Dog','Bat','Fish','Parrot','Snake','Butterfly','Whale'],onlyA:['Dog','Fish','Snake','Whale'],onlyB:[],both:['Eagle','Bat','Parrot','Butterfly'],hint:'Eagle, Bat, Parrot, Butterfly are animals that can also fly → Both circles'},
+  {cA:'Metals',cB:'Liquid at Room Temp',items:['Iron','Mercury','Water','Gold','Bromine','Silver'],onlyA:['Iron','Gold','Silver'],onlyB:['Water','Bromine'],both:['Mercury'],hint:'Mercury is the only metal that is liquid at room temperature → Both'},
+]}},
+{id:'decision',n:'Decision Making',icon:'⚖️',color:'#F97316',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'📚',sit:'Rohit scores 95% in Science but only 40% in English. Exams are in 2 weeks. What should he do?',choices:['Study only Science to stay strong','Study only English to catch up','Study both — balance time wisely','Ask the teacher to cancel English exam'],ans:'Study both — balance time wisely',hint:'Balanced study fixes the weak subject without letting the strong one drop.'},
+  {emoji:'🔥',sit:'You notice smoke coming from the school store room. The teacher is not around. What should you do?',choices:['Investigate the store room yourself','Alert a nearby teacher or adult immediately','Wait to see if anyone else notices','Ignore it and continue your activity'],ans:'Alert a nearby teacher or adult immediately',hint:'Any fire sign is a safety emergency. Always alert an adult — never investigate yourself.'},
+  {emoji:'🤝',sit:'Your friend is struggling with Maths and exams are tomorrow. You are good at it.',choices:['Focus only on your own revision','Give friend the answer sheet to copy','Spend 30 min explaining key concepts','Do the homework for them'],ans:'Spend 30 min explaining key concepts',hint:'Teaching helps the friend actually learn. 30 minutes will not hurt your own preparation.'},
+]}},
+{id:'assertion',n:'Assertion & Reasoning',icon:'💬',color:'#06B6D4',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'🧊',sit:'Assertion (A): Ice melts at 0°C.\nReason (R): Ice is solid water made of H₂O molecules.',choices:['Both A and R true, R correctly explains A','Both true but R does NOT explain A','A true, R false','A false, R true'],ans:'Both true but R does NOT explain A',hint:"Ice melts at 0°C is true. Ice is solid water is true. But the molecular structure doesn't explain WHY it melts at exactly 0°C."},
+  {emoji:'🐧',sit:'Assertion (A): Birds have wings.\nReason (R): All birds can fly.',choices:['Both A and R true, R explains A','Both true, R does not explain A','A true, R false','A false, R true'],ans:'A true, R false',hint:'A is true — birds do have wings. R is false — penguins and ostriches have wings but cannot fly.'},
+  {emoji:'💧',sit:'Assertion (A): We should drink 8 glasses of water daily.\nReason (R): Water keeps us hydrated and supports all body functions.',choices:['Both A and R true, R correctly explains A','Both true, R does not explain A','A true, R false','A false, R true'],ans:'Both A and R true, R correctly explains A',hint:'Both are true. R directly explains why we need to drink water daily — hydration supports body functions.'},
+]}},
+{id:'situation',n:'Situation Reaction',icon:'⚡',color:'#EC4899',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'🚑',sit:'You are walking to school and see an elderly woman fall and hurt herself on the road.',choices:['Walk past — you will be late for school','Take a photo and post on social media','Help her up and call for help or find an adult','Run away — you do not know what to do'],ans:'Help her up and call for help or find an adult',hint:'Human safety always comes first. Help immediately and ensure they get the right assistance.'},
+  {emoji:'👝',sit:'You find a wallet with ₹500 and an ID card on the school playground.',choices:['Keep the money — it is your lucky day!','Leave it — not your problem','Hand it to the teacher or principal with all contents','Share the money with your friends'],ans:'Hand it to the teacher or principal with all contents',hint:'Returning found belongings is honest and responsible. The ID card will help find the owner.'},
+  {emoji:'🚨',sit:'During a fire drill at school, your friends are walking slowly and laughing.',choices:['Join them — it is just a drill!','Tell them to hurry and exit calmly but quickly','Run ahead and leave them behind','Walk slowly with them since it is not a real fire'],ans:'Tell them to hurry and exit calmly but quickly',hint:'Fire drills train you for real emergencies. Always treat them seriously — calm, quick, orderly.'},
+]}},
+{id:'math_ops',n:'Mathematical Operations',icon:'➕',color:'#F59E0B',tag:'Symbol Swap',gt:'mathops',data:{qs:[
+  {rule:'Here: + means ×  and  × means −',eq:'3 + 4 = ?',ans:'12',choices:['7','12','14','9'],hint:'3 + 4 → use + as × → 3×4 = 12'},
+  {rule:'Here: − means +  and  + means ×',eq:'5 − 3 + 2 = ?',ans:'16',choices:['10','16','8','12'],hint:'5−3 → 5+3=8, then 8+2 → 8×2 = 16'},
+  {rule:'Pattern: a★b = a² + b²',eq:'4 ★ 5 = ?',ans:'41',choices:['20','36','41','45'],hint:'4²+5² = 16+25 = 41'},
+  {rule:'A=1, B=2, C=3, D=4…',eq:'B + D − A = ?',ans:'5',choices:['3','5','6','7'],hint:'B=2, D=4, A=1 → 2+4−1 = 5'},
+  {rule:'Here: ÷ means + and + means ×',eq:'6 ÷ 2 + 3 = ?',ans:'24',choices:['5','11','24','18'],hint:'6÷2 → 6+2=8, then 8+3 → 8×3 = 24'},
+]}},
+{id:'missing',n:'Inserting the Missing',icon:'❓',color:'#8B5CF6',tag:'Fill the Gap',gt:'missingtile',data:{qs:[
+  {seq:['AZ','BY','CX','?','EV'],ans:'DW',blankAt:3,choices:['DV','DW','EW','DX'],hint:'First letter goes forward A→D, second goes backward Z→W'},
+  {seq:['1','8','27','?','125'],ans:'64',blankAt:3,choices:['36','48','64','81'],hint:'Perfect cubes: 1³=1, 2³=8, 3³=27, 4³=64, 5³=125'},
+  {seq:['2','6','12','?','30'],ans:'20',blankAt:3,choices:['18','20','22','24'],hint:'Differences increase: +4,+6,+8,+10 → 12+8=20'},
+  {seq:['P3Q','R5S','?','V9W'],ans:'T7U',blankAt:2,choices:['T7V','T8U','T7U','S7U'],hint:'Letters skip one each time, numbers are odd: 3,5,7,9'},
+  {seq:['5','?','17','23','29'],ans:'11',blankAt:1,choices:['8','10','11','13'],hint:'+6 each time: 5→11→17→23→29'},
+]}},
+{id:'logical_seq',n:'Logical Sequence',icon:'📋',color:'#10B981',tag:'Drag to Order',gt:'sortseq',data:{qs:[
+  {q:'Arrange in correct human life cycle order:',items:['Adult','Infant','Old Age','Teenager','Child'],correct:['Infant','Child','Teenager','Adult','Old Age']},
+  {q:'Arrange from smallest to largest unit of writing:',items:['Sentence','Chapter','Paragraph','Letter','Word'],correct:['Letter','Word','Sentence','Paragraph','Chapter']},
+  {q:'Arrange the legal process in correct order:',items:['Trial','Judgment','Crime','Arrest','Punishment'],correct:['Crime','Arrest','Trial','Judgment','Punishment']},
+]}},
+{id:'logic',n:'Logic',icon:'🧠',color:'#A855F7',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'🐱',sit:'All cats are animals. Whiskers is a cat. What must be true?',choices:['Whiskers is an animal','All animals are cats','Whiskers may be an animal','Whiskers is not an animal'],ans:'Whiskers is an animal',hint:'Valid syllogism: All A are B. X is A → X must be B. No maybe — it is certain.'},
+  {emoji:'📚',sit:'No student who studied hard failed. Ram studied hard. What follows?',choices:['Ram failed','Ram did not fail','Ram may have failed','Cannot be determined'],ans:'Ram did not fail',hint:'Studied hard → did not fail. Ram studied hard → Ram did not fail. Guaranteed.'},
+  {emoji:'📏',sit:'P is taller than Q. R is taller than P. S is shorter than Q. Who is tallest?',choices:['P','Q','R','S'],ans:'R',hint:'Order: R > P > Q > S. R is the tallest.'},
+]}},
+{id:'stmt_args',n:'Statement & Arguments',icon:'🗣️',color:'#F97316',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'💪',sit:'Statement: "Physical education should be compulsory in schools."\n\nWhich argument is STRONGEST?',choices:['Yes — keeps students fit and improves concentration in class','No — some students do not like sports','Yes — gives a break from boring subjects','No — the school hall needs repair'],ans:'Yes — keeps students fit and improves concentration in class',hint:'A strong argument is relevant and directly supports a meaningful benefit of the policy.'},
+  {emoji:'🥗',sit:'Statement: "Junk food should be banned from school canteens."\n\nWhich argument is STRONGEST?',choices:['Yes — harms health and creates bad eating habits','No — students enjoy it during break','No — canteen owner will lose business','Yes — it tastes bad'],ans:'Yes — harms health and creates bad eating habits',hint:'Health impact on children is the strongest and most relevant argument.'},
+  {emoji:'📵',sit:'Statement: "Mobile phones should NOT be allowed in classrooms."\n\nWhich argument is STRONGEST?',choices:['No — phones are expensive and could be stolen','Yes — phones distract and reduce learning focus','No — students need to call parents anytime','Yes — phones are too heavy to carry'],ans:'Yes — phones distract and reduce learning focus',hint:'Distraction from learning is the most directly relevant and strong argument.'},
+]}},
+{id:'stmt_assume',n:'Statement & Assumptions',icon:'🤔',color:'#06B6D4',tag:'Scratch to Reveal',gt:'scratch',data:{qs:[
+  {stmt:'"Please carry an umbrella tomorrow."',assumption:'It may rain tomorrow.',decoys:['The person loves umbrellas','It never rains here','Umbrellas are on sale'],hint:'The advice to carry an umbrella implies that rain is expected — that is the hidden assumption.'},
+  {stmt:'"Children should eat green vegetables daily."',assumption:'Green vegetables are healthy for children.',decoys:['Children hate vegetables','Vegetables are very expensive','Only adults benefit from vegetables'],hint:'The statement assumes vegetables are beneficial — so it is worth recommending them daily.'},
+  {stmt:'"Join our coaching and score 90%!"',assumption:'Students want to score high marks.',decoys:['All students are bad at studies','Coaching guarantees 90%','90% is very easy to get'],hint:'The ad assumes its audience desires high marks — that desire is what makes the offer appealing.'},
+  {stmt:'"Please bring your identity card to the examination hall."',assumption:'Students may need to prove their identity at the exam.',decoys:['Everyone forgets their ID card','ID cards are made of plastic','Examinations are optional'],hint:'Requiring an ID assumes that verification of identity may be needed — the basis for this instruction.'},
+]}},
+{id:'courses',n:'Courses of Action',icon:'🎯',color:'#10B981',tag:'Sort Basket',gt:'sortbasket',data:{cats:['Effective Action','Ineffective Action'],items:{'Effective Action':['Enforce traffic rules to reduce accidents','Provide clean water to prevent disease spread','Give extra coaching to a consistently failing student','Conduct regular fire drills in schools'],'Ineffective Action':['Close the school because one student fell ill','Remove Maths from curriculum for weak students','Ignore road accidents and hope numbers drop naturally','Build a hospital in a forest with no residents nearby']}}},
+{id:'stmt_conc',n:'Statement & Conclusions',icon:'📌',color:'#8B5CF6',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'🐧',sit:'Statements: All birds have wings. Penguins are birds.\n\nConclusion I: Penguins have wings.\nConclusion II: Penguins can fly.',choices:['Only Conclusion I follows','Only Conclusion II follows','Both conclusions follow','Neither follows'],ans:'Only Conclusion I follows',hint:'I is valid (all birds have wings, penguins are birds → they have wings). II is invalid — penguins have wings but cannot fly.'},
+  {emoji:'🎓',sit:'Statements: Some teachers are doctors. All doctors are educated.\n\nConclusion I: Some teachers are educated.\nConclusion II: All educated people are doctors.',choices:['Only I follows','Only II follows','Both follow','Neither follows'],ans:'Only I follows',hint:'I: Some teachers are doctors + all doctors educated → some teachers educated (valid). II reverses logic — invalid.'},
+  {emoji:'🪑',sit:'Statements: No chair is a table. All tables are wooden.\n\nConclusion I: No chair is wooden.\nConclusion II: Some wooden things are tables.',choices:['Only I follows','Only II follows','Both follow','Neither follows'],ans:'Only II follows',hint:'II is valid — all tables are wooden, so wooden things include tables. I is invalid — chairs could be wooden for other reasons.'},
+]}},
+{id:'deriving',n:'Deriving Conclusions',icon:'📖',color:'#EF4444',tag:'Choose Wisely',gt:'scenario',data:{qs:[
+  {emoji:'😴',sit:'Passage: "A survey found students who sleep 8 hours consistently scored higher in exams than those sleeping under 6 hours."\n\nWhich conclusion BEST follows?',choices:['Sleep is the ONLY factor deciding exam results','Less sleep may negatively affect academic performance','Every student must sleep exactly 8 hours or fail','Sleep has no effect on performance'],ans:'Less sleep may negatively affect academic performance',hint:'"May negatively affect" is valid and appropriately cautious. The survey shows correlation, not absolute certainty.'},
+  {emoji:'📚',sit:'Passage: "In all 10 schools surveyed, schools with libraries had higher average student scores."\n\nWhich conclusion BEST follows?',choices:['All schools without libraries must close immediately','Libraries are the only path to success','Access to books may support better learning outcomes','Students without libraries cannot learn at all'],ans:'Access to books may support better learning outcomes',hint:'"May support" is the cautious, valid conclusion from survey data. Absolute claims are not justified.'},
+]}},
+{id:'analytical',n:'Analytical Reasoning',icon:'🔍',color:'#3B82F6',tag:'Drag to Order',gt:'sortseq',data:{qs:[
+  {q:'A, B, C, D, E sit in a row.\nA is to the right of B. C is to the left of D. E is between A and C.\nArrange them left → right:',items:['C','B','E','A','D'],correct:['B','A','E','C','D']},
+  {q:'Arrange by height — TALLEST to SHORTEST.\nGiven: P > Q,  R > P,  S < Q',items:['P','R','S','Q'],correct:['R','P','Q','S']},
+]}},
+{id:'cube',n:'Cube and Dice',icon:'🎲',color:'#F97316',tag:'Rotate the Cube',gt:'dice3d',data:{qs:[
+  {faces:{front:'1',back:'6',right:'2',left:'5',top:'3',bottom:'4'},q:'Opposite faces of a standard dice sum to 7. If 3 is on top, what is on the bottom?',ans:'4',choices:['2','3','4','5'],hint:'Top=3, opposite = 7−3 = 4'},
+  {faces:{front:'A',back:'F',right:'B',left:'E',top:'C',bottom:'D'},q:'When A faces front and B faces right, which face is on top?',ans:'C',choices:['B','C','D','E'],hint:'From this arrangement: C is on top when A is front and B is right.'},
+  {faces:{front:'🔴',back:'🔵',right:'🟡',left:'🟢',top:'🟠',bottom:'🟣'},q:'A cube is painted on all 6 faces and cut into 27 small cubes. How many small cubes have NO paint at all?',ans:'1',choices:['0','1','6','8'],hint:'Only the 1 center cube has no painted face in a 3×3×3 cube.'},
+]}},
+{id:'mirror',n:'Mirror Image',icon:'🪞',color:'#06B6D4',tag:'Pick the Mirror',gt:'reflection',data:{type:'mirror',qs:[
+  {orig:'b',opts:['d','p','q','b'],ans:'d',hint:'Mirror flips left↔right: b becomes d'},
+  {orig:'F',opts:['F','ꟻ','E','Ƒ'],ans:'ꟻ',hint:'F mirrored horizontally becomes ꟻ (reversed F)'},
+  {orig:'3',opts:['E','Ɛ','3','m'],ans:'Ɛ',hint:'3 mirrored left-right becomes Ɛ'},
+  {orig:'p',opts:['b','q','d','p'],ans:'q',hint:'p mirrored left-right becomes q'},
+  {orig:'<',opts:['>','v','^','<'],ans:'>',hint:'< flipped horizontally becomes >'},
+  {orig:'E',opts:['F','Ǝ','3','E'],ans:'Ǝ',hint:'E mirrored becomes Ǝ (reversed E)'},
+]}},
+{id:'water',n:'Water Image',icon:'💧',color:'#3B82F6',tag:'Pick the Reflection',gt:'reflection',data:{type:'water',qs:[
+  {orig:'A',opts:['∀','V','Λ','A'],ans:'∀',hint:'Water image flips top↔bottom: A upside-down = ∀'},
+  {orig:'M',opts:['W','M','Ш','m'],ans:'W',hint:'M flipped vertically = W'},
+  {orig:'T',opts:['⊥','T','I','t'],ans:'⊥',hint:'T flipped upside-down = ⊥'},
+  {orig:'U',opts:['∩','u','n','U'],ans:'∩',hint:'U flipped = ∩ (upside-down U)'},
+  {orig:'p',opts:['b','d','q','p'],ans:'b',hint:'p flipped top-bottom = b'},
+  {orig:'n',opts:['u','m','h','n'],ans:'u',hint:'n flipped vertically = u'},
+]}},
+{id:'rules',n:'Rules',icon:'📏',color:'#A855F7',tag:'Pattern Painter',gt:'pattern',data:{qs:[
+  {rule:'Rule: Colour every 3rd cell (positions 3, 6, 9…)',given:[0,0,1,0,0,1,0,0,1],answer:[1,0,0],hint:'Pattern: skip 2, colour 1. Next 3 cells → colour first, skip two.'},
+  {rule:'Rule: Alternate colouring — colour, skip, colour, skip…',given:[1,0,1,0,1,0],answer:[1,0],hint:'Odd positions get coloured. Next 2: position 7 (colour), position 8 (skip).'},
+  {rule:'Rule: Double the number of coloured cells each row (1→2→4)',given:[1,0,0,0, 1,1,0,0],answer:[1,1,1,1],hint:'Row 1: 1 coloured. Row 2: 2 coloured. Row 3 should have 4 — all cells coloured.'},
+]}},
+];
+
+let G={score:0,xp:0,level:1,lives:3,combo:0,bestCombo:0,correct:0,total:0,fastestTime:999,streak:0,topScore:0,qIdx:0,qs:[],topic:null,timerInt:null,timeLeft:30,qStart:0};
+let lastTopicIdx=0;
+const $=id=>document.getElementById(id);
+function shuf(a){return[...a].sort(()=>Math.random()-.5);}
+function showScr(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
+// NOTE: showScr, startTopic and goHome are overridden in the AI section below
+
+// ── AI & Teacher state — all declared here before buildHome() runs ──
+let _assignedTopics=null;
+let _currentRole='student';
+let _examConfig=null;
+let _examState=null;
+let AI_MODE=true; // always on — key is configured on Vercel server
+let GEMINI_API_KEY='__SERVER__'; // key is server-side, not needed in browser
+let AI_CACHE={};
+let GEMINI_MODELS=['gemini-2.0-flash-lite-001','gemini-2.0-flash-lite','gemini-2.5-flash-lite','gemini-2.5-flash','gemini-2.0-flash-001','gemini-2.0-flash','gemini-3.1-flash-lite'];
+let _modelIdx=0;
+let _modelsDiscovered=false;
+let _blockedModels=new Set();
+
+function buildHome(){
+  const lbl=$('grid-lbl');
+  if(lbl){
+    if(AI_MODE)
+      lbl.innerHTML=`Tap a topic to practise &nbsp;·&nbsp; <span style="background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:2px 9px;font-size:.65rem;font-weight:800;color:#C084FC;">🤖 AI On</span>`;
+    else
+      lbl.textContent='Tap a topic to start playing';
+  }
+  const tgrid=$('tgrid');if(!tgrid)return;
+  tgrid.innerHTML=TOPICS.map(t=>{
+    const i=TOPICS.indexOf(t);
+    const hasCached=!!(AI_CACHE[t.id]);
+    const aiDot=AI_MODE
+      ?(hasCached
+        ?`<div style="position:absolute;top:7px;right:7px;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:8px;padding:2px 6px;font-size:.55rem;font-weight:800;color:white;">🤖 AI</div>`
+        :`<div style="position:absolute;top:7px;right:7px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);border-radius:8px;padding:2px 6px;font-size:.55rem;font-weight:700;color:#C084FC;">🤖</div>`)
+      :`<div style="position:absolute;top:7px;right:7px;background:rgba(255,255,255,.06);border-radius:8px;padding:2px 6px;font-size:.55rem;font-weight:700;color:var(--muted);">📚</div>`;
+    return`<div class="tc" onclick="startTopic(${i})" style="background:linear-gradient(135deg,${t.color}22,${t.color}0c);border-color:${t.color}30;">
+      ${aiDot}<span class="tc-icon">${t.icon}</span>
+      <div class="tc-name">${t.n}</div><div class="tc-tag">${t.tag}</div>
+    </div>`;
+  }).join('');
+}
+buildHome();
+
+// startTopic is defined in the AI section below (supports both AI and static modes)
+function retryGame(){startTopic(lastTopicIdx);}
+
+function loadQ(){
+  clearTimer();
+  if(G.qIdx>=G.qs.length){showResults();return;}
+  const q=G.qs[G.qIdx];
+  $('chip').textContent=G.topic.icon+' '+G.topic.n;
+  $('qp').textContent=`${G.qIdx+1}/${G.qs.length}`;
+  const st=$('stage');st.style.animation='none';st.offsetHeight;st.style.animation='';
+  G.total++;G.qStart=Date.now();
+  // Track whether this session's questions are AI or built-in
+  G.isAISession = !!(AI_MODE && G.topic && G.topic._aiData);
+  switch(q.type){
+    case 'memory':renderMemory(q.d);break;
+    case 'sortbasket':renderSortBasket(q.d);break;
+    case 'conveyor':renderConveyor(q.d);break;
+    case 'cipher':renderCipher(q.d);break;
+    case 'familytree':renderFamilyTree(q.d);break;
+    case 'sortseq':renderSortSeq(q.d);break;
+    case 'maze':renderMaze(q.d);break;
+    case 'venn':renderVenn(q.d);break;
+    case 'scenario':renderScenario(q.d);break;
+    case 'scratch':renderScratch(q.d);break;
+    case 'dice3d':renderDice(q.d);break;
+    case 'pattern':renderPattern(q.d);break;
+    case 'mathops':renderMathOps(q.d);break;
+    case 'missingtile':renderMissingTile(q.d);break;
+    case 'reflection':renderReflection(q.d);break;
+  }
+  // Inject source badge at top of every stage after render
+  injectSourceBadge();
+}
+function injectSourceBadge(){
+  const st=$('stage');if(!st)return;
+  const old=st.querySelector('.src-badge');if(old)old.remove();
+  const isAI=G.isAISession;
+  const model=GEMINI_MODELS[_modelIdx]||'';
+  const badge=document.createElement('div');
+  badge.className='src-badge';
+  badge.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;padding:5px 10px;border-radius:20px;font-size:.65rem;font-weight:800;';
+  if(isAI){
+    badge.style.background='linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.15))';
+    badge.style.border='1px solid rgba(124,58,237,.35)';
+    badge.innerHTML=`<span style="color:#C084FC;">🤖 AI Generated</span><span style="color:var(--muted);font-weight:600;">${model}</span>`;
+  }else{
+    badge.style.background='rgba(255,255,255,.04)';
+    badge.style.border='1px solid rgba(255,255,255,.1)';
+    badge.innerHTML=`<span style="color:var(--muted);">📚 Built-in Question</span><span style="color:var(--muted);font-weight:600;">Static library</span>`;
+  }
+  st.insertBefore(badge,st.firstChild);
+}
+function nextQ(){G.qIdx++;loadQ();}
+function skipQ(){clearTimer();G.combo=0;nextQ();}
+function showHint(){const b=$('hint-box');if(b)b.classList.add('vis');}
+
+/* === MEMORY FLIP === */
+function renderMemory(d){
+  const pairs=d.pairs,cards=[];
+  pairs.forEach(([a,b],i)=>{cards.push({id:i*2,grp:i,txt:a});cards.push({id:i*2+1,grp:i,txt:b});});
+  const sh=shuf(cards);const cols=sh.length<=8?4:4;const cw=Math.min(86,Math.floor(320/cols));
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🃏 Memory Flip</span></div>
+    <div class="gq">Flip cards to find matching pairs!</div>
+    <div class="mem-grid" style="grid-template-columns:repeat(${cols},${cw}px);margin:0 auto .5rem;">${
+      sh.map(c=>`<div class="mcard" id="mc${c.id}" data-grp="${c.grp}" style="width:${cw}px;height:${cw}px;" onclick="flipCard(${c.id})">
+        <div class="mcard-in">
+          <div class="mfront"><div class="mfront-ico">🔮</div></div>
+          <div class="mback" style="font-size:${c.txt.length>10?'.6rem':c.txt.length>6?'.66rem':'.74rem'}">${c.txt}</div>
+        </div></div>`).join('')}
+    </div>
+    <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:.4rem;">Pairs matched: <span id="mpairs">0</span> / ${pairs.length}</div>
+    <div class="hint-box" id="hint-box">💡 Each card matches a related card on the other side!</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  window._mem={flipped:[],matched:0,total:pairs.length,locked:false};
+  stopTimer();
+}
+function flipCard(id){
+  const m=window._mem;if(m.locked)return;
+  const el=$(`mc${id}`);if(!el||el.classList.contains('flip')||el.classList.contains('ok'))return;
+  el.classList.add('flip');m.flipped.push({id,grp:+el.dataset.grp,el});
+  if(m.flipped.length===2){
+    m.locked=true;
+    const[a,b]=m.flipped;
+    if(a.grp===b.grp){
+      setTimeout(()=>{[a.el,b.el].forEach(e=>e.classList.add('ok'));m.matched++;const mp=$('mpairs');if(mp)mp.textContent=m.matched;m.flipped=[];m.locked=false;spawnParticles('⭐',innerWidth/2,innerHeight*.5);if(m.matched>=m.total){onCorrect(Math.round((Date.now()-G.qStart)/1000),true);setTimeout(()=>nextQ(),1000);}},480);
+    }else{setTimeout(()=>{[a.el,b.el].forEach(e=>e.classList.remove('flip'));m.flipped=[];m.locked=false;},820);}
+  }
+}
+
+/* === SORT BASKET === */
+function renderSortBasket(d){
+  const cats=d.cats;const allItems=[];cats.forEach(c=>d.items[c].forEach(it=>allItems.push({txt:it,cat:c})));
+  const sh=shuf(allItems);
+  const catColors={'Fruits':'#10B981','Vegetables':'#F59E0B','Animals':'#EC4899','Effective Action':'#10B981','Ineffective Action':'#EF4444','default':'#7C3AED'};
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🗂️ Sort Basket</span></div>
+    <div class="gq">Drag items into the correct basket!</div>
+    <div class="sbank" id="sbank">${sh.map((it,i)=>`<div class="sitem" id="si${i}" data-cat="${it.cat}" data-i="${i}" draggable="true" ondragstart="sbDS(event,${i})">${it.txt}</div>`).join('')}</div>
+    <div class="baskets">${cats.map(c=>`<div class="bkt" data-cat="${c}" style="border-color:${catColors[c]||catColors.default}44;" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="sbDrop(event,'${c.replace(/'/g,"\\'")}')"><div class="bkt-lbl" style="color:${catColors[c]||catColors.default}">${c}</div><div class="bkt-items" id="bi_${c.replace(/[\s&]/g,'_')}"></div></div>`).join('')}</div>
+    <div class="hint-box" id="hint-box">💡 Look for what makes each item belong to its group.</div>
+    <div class="abar"><button class="btn-ok" id="checkbtn" onclick="checkBasket()" disabled>✓ Check</button><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  window._sb={d,placed:{},total:allItems.length};cats.forEach(c=>window._sb.placed[c]=[]);
+  setupSBTouch(sh);stopTimer();
+}
+function sbDS(e,i){e.dataTransfer.setData('i',i);}
+function sbDrop(e,cat){
+  e.preventDefault();e.currentTarget.classList.remove('over');
+  const i=+(window._sbti!==undefined?window._sbti:e.dataTransfer.getData('i'));
+  window._sbti=undefined;
+  const el=$(`si${i}`);if(!el||el.style.display==='none')return;
+  window._sb.placed[cat].push({i,txt:el.textContent.trim(),cat:el.dataset.cat});el.style.display='none';
+  const bk=$('bi_'+cat.replace(/[\s&]/g,'_'));if(bk)bk.innerHTML=window._sb.placed[cat].map(p=>`<span class="bkt-tag">${p.txt}</span>`).join('');
+  const tot=Object.values(window._sb.placed).flat().length;
+  const cb=$('checkbtn');if(cb)cb.disabled=tot<window._sb.total;
+}
+function checkBasket(){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);let w=0;Object.entries(window._sb.placed).forEach(([cat,items])=>items.forEach(it=>{if(it.cat!==cat)w++;}));w===0?onCorrect(el):onWrong();setTimeout(()=>nextQ(),1400);}
+function setupSBTouch(items){
+  let ghost=null,dIdx=null;
+  items.forEach((_,i)=>{
+    const el=$(`si${i}`);if(!el)return;
+    el.addEventListener('touchstart',e=>{e.preventDefault();dIdx=i;ghost=el.cloneNode(true);ghost.style.cssText='position:fixed;z-index:9999;opacity:.85;pointer-events:none;padding:7px 13px;border-radius:10px;background:linear-gradient(135deg,#6D28D9,#A855F7);font-size:.85rem;font-weight:700;color:white;';document.body.appendChild(ghost);const t=e.touches[0];ghost.style.left=(t.clientX-50)+'px';ghost.style.top=(t.clientY-20)+'px';},{passive:false});
+    el.addEventListener('touchmove',e=>{e.preventDefault();if(!ghost)return;const t=e.touches[0];ghost.style.left=(t.clientX-50)+'px';ghost.style.top=(t.clientY-20)+'px';document.querySelectorAll('.bkt').forEach(b=>b.classList.remove('over'));const un=document.elementFromPoint(t.clientX,t.clientY);if(un?.closest('.bkt'))un.closest('.bkt').classList.add('over');},{passive:false});
+    el.addEventListener('touchend',e=>{if(ghost){document.body.removeChild(ghost);ghost=null;}document.querySelectorAll('.bkt').forEach(b=>b.classList.remove('over'));const t=e.changedTouches[0];const un=document.elementFromPoint(t.clientX,t.clientY);const b=un?.closest('.bkt');if(b){window._sbti=dIdx;sbDrop({preventDefault:()=>{},currentTarget:b},b.dataset.cat);}},{passive:true});
+  });
+}
+
+/* === FALLING TILES (Series/Missing) === */
+function renderConveyor(d){
+  const seqHTML=d.seq.map((v,i)=>{const isQ=(v+'').includes('?');return(i>0?'<div class="sarrow">→</div>':'')+`<div class="snode${isQ?' blank':''}">${v}</div>`;}).join('');
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🚀 Catch the Answer</span></div>
+    <div class="conv-seq">${seqHTML}</div>
+    <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-align:center;margin-bottom:.4rem;">Tap the correct tile before it falls off!</div>
+    <div class="conv-arena" id="cArena"><div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#7C3AED88,#06B6D488,transparent);"></div><div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.6rem;color:var(--muted);">↓ falling ↓</div></div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  const all=shuf([d.ans,...d.d.slice(0,3)]);
+  window._conv={ans:d.ans,done:false,gone:0,total:all.length};
+  const arena=$('cArena');const lw=Math.floor(96/all.length);
+  all.forEach((val,i)=>{
+    setTimeout(()=>{
+      if(window._conv.done||!arena)return;
+      const tile=document.createElement('div');tile.className='ftile';
+      tile.style.cssText=`left:${1+i*lw}%;width:${lw-2}%;height:58px;top:-70px;animation:tfall ${5+Math.random()*.8}s linear forwards;`;
+      tile.innerHTML=`<div style="font-size:1.05rem;font-weight:900;">${val}</div>`;
+      tile.addEventListener('animationend',()=>{if(tile.parentNode)tile.parentNode.removeChild(tile);window._conv.gone++;if(!window._conv.done&&val===window._conv.ans){onWrong();setTimeout(()=>nextQ(),700);}else if(!window._conv.done&&window._conv.gone>=window._conv.total){onWrong();setTimeout(()=>nextQ(),700);}});
+      tile.addEventListener('click',()=>{if(window._conv.done)return;window._conv.done=true;clearTimer();const elapsed=Math.round((Date.now()-G.qStart)/1000);tile.style.animation='none';if(val===window._conv.ans){tile.style.background='rgba(16,185,129,.5)';tile.style.borderColor='#10B981';onCorrect(elapsed);}else{tile.style.background='rgba(239,68,68,.4)';tile.style.borderColor='#EF4444';onWrong();}setTimeout(()=>nextQ(),1200);});
+      arena.appendChild(tile);
+    },800+i*950);
+  });
+  startTimer(22);
+}
+
+/* === CIPHER WHEEL === */
+let _CS=0,_CA='',_CE='';
+function renderCipher(d){
+  _CS=0;_CA=d.dec.toUpperCase();_CE=d.enc.toUpperCase();
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🔐 Cipher Wheel</span></div>
+    <div class="ibox" style="margin-bottom:.55rem;text-align:center;"><div style="font-size:.62rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">📋 Rule</div><div style="font-size:.88rem;">${d.rule}</div></div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.25rem;">Encoded word:</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:1.55rem;font-weight:700;color:var(--gold);text-align:center;letter-spacing:3px;margin-bottom:.45rem;">${d.enc}</div>
+    <div class="cipher-pairs" id="cpairs"></div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.25rem;">Use − / + to find the shift that decodes the word:</div>
+    <div class="shift-row">
+      <button class="sbtn" onclick="adjShift(-1)">−</button>
+      <div class="shift-num" id="snum">0</div>
+      <button class="sbtn" onclick="adjShift(1)">+</button>
+    </div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.25rem;">Decoded word:</div>
+    <div class="decoded-word" id="dword">${'?'.repeat(_CE.length)}</div>
+    <div class="hint-box" id="hint-box">💡 The word was encoded by adding ${d.shift} to each letter. Use the − button ${d.shift} time(s) to decode it.</div>
+    <div class="abar"><button class="btn-ok" id="checkbtn" onclick="checkCipher()" disabled>✓ Submit</button><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  updateCipher();
+}
+function shiftL(ch,n){const c=ch.charCodeAt(0);if(c>=65&&c<=90)return String.fromCharCode(((c-65-n+260)%26)+65);return ch;}
+function adjShift(d){_CS=(_CS+d+26)%26;$('snum').textContent=_CS;updateCipher();}
+function updateCipher(){
+  const dec=_CE.split('').map(ch=>shiftL(ch,_CS)).join('');
+  const dw=$('dword');if(dw)dw.textContent=dec;
+  const cp=$('cpairs');
+  if(cp)cp.innerHTML=_CE.split('').map((ch,i)=>{const decCh=shiftL(ch,_CS);const hit=_CS>0&&decCh===(_CA[i]||'');return`<div class="cpair${hit?' hit':''}"><div class="cpair-enc">${ch}</div><div class="cpair-shift">−${_CS}</div><div class="cpair-dec">${decCh}</div></div>`;}).join('');
+  const cb=$('checkbtn');if(cb)cb.disabled=_CS===0;
+}
+function checkCipher(){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);const dec=_CE.split('').map(ch=>shiftL(ch,_CS)).join('');dec===_CA?onCorrect(el):onWrong();setTimeout(()=>nextQ(),1400);}
+
+/* === FAMILY TREE === */
+function renderFamilyTree(d){
+  const NC={male:{bg:'rgba(6,182,212,.22)',tx:'#67E8F9',br:'#0891B2',ic:'👨'},female:{bg:'rgba(236,72,153,.22)',tx:'#F9A8D4',br:'#BE185D',ic:'👩'},unknown:{bg:'rgba(245,158,11,.1)',tx:'#F59E0B',br:'#B45309',ic:'❓'}};
+  let treeSVG='';
+  if(d.nodes&&d.nodes.length){
+    const par=d.nodes.filter(n=>n.top),chi=d.nodes.filter(n=>!n.top);
+    const NW=112,NH=52,CG=34,GAP=14,ROWGAP=85;
+    let svgW,p0x,p1x;
+    if(par.length>=2){const tot=NW*2+CG;svgW=Math.max(tot+36,chi.length*(NW+GAP)-GAP+36);const cl=(svgW-tot)/2;p0x=cl;p1x=cl+NW+CG;}
+    else{svgW=Math.max(NW+36,chi.length*(NW+GAP)-GAP+36);p0x=(svgW-NW)/2;p1x=null;}
+    const pY=12,chY=pY+NH+ROWGAP,svgH=chY+NH+18;
+    const marMidX=par.length>=2?(p0x+NW+p1x)/2:p0x+NW/2;
+    const marY=pY+NH/2,spreadY=pY+NH+ROWGAP/2;
+    const totCW=chi.length*(NW+GAP)-GAP,chSX=(svgW-totCW)/2;
+    const chCXs=chi.map((_,i)=>chSX+i*(NW+GAP)+NW/2);
+    let svg=`<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" style="max-width:${svgW}px;min-width:270px;display:block;margin:0 auto;">`;
+    if(par.length>=2){svg+=`<line x1="${p0x+NW}" y1="${marY}" x2="${p1x}" y2="${marY}" stroke="#EC4899" stroke-width="2.5" stroke-dasharray="5,3"/>`;svg+=`<text x="${marMidX}" y="${marY+6}" text-anchor="middle" font-size="13">❤️</text>`;}
+    svg+=`<line x1="${marMidX}" y1="${marY}" x2="${marMidX}" y2="${spreadY}" stroke="rgba(255,255,255,.28)" stroke-width="2"/>`;
+    if(chi.length>1)svg+=`<line x1="${chCXs[0]}" y1="${spreadY}" x2="${chCXs[chi.length-1]}" y2="${spreadY}" stroke="rgba(255,255,255,.28)" stroke-width="2"/>`;
+    chCXs.forEach(cx=>svg+=`<line x1="${cx}" y1="${spreadY}" x2="${cx}" y2="${chY}" stroke="rgba(255,255,255,.22)" stroke-width="2"/>`);
+    const dn=(n,x,y)=>{const c=NC[n.r]||NC.unknown;return`<g><rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="12" fill="${c.bg}" stroke="${c.br}" stroke-width="2"/><text x="${x+20}" y="${y+22}" font-size="16">${c.ic}</text><text x="${x+NW/2+8}" y="${y+21}" text-anchor="middle" fill="${c.tx}" font-size="12" font-weight="700" font-family="Nunito">${n.l}</text><text x="${x+NW/2+8}" y="${y+36}" text-anchor="middle" fill="${c.br}" font-size="9" font-family="Nunito">${n.r==='male'?'Male':n.r==='female'?'Female':'?'}</text></g>`;};
+    svg+=dn(par[0],p0x,pY);if(par.length>=2)svg+=dn(par[1],p1x,pY);
+    chi.forEach((ch,i)=>svg+=dn(ch,chSX+i*(NW+GAP),chY));
+    svg+='</svg>';treeSVG=`<div class="tree-wrap">${svg}</div>`;
+  }
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">👨‍👩‍👧 Family Tree</span></div>
+    <div class="ibox" style="margin-bottom:.55rem;">📖 ${d.story}</div>
+    ${treeSVG}
+    <div style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.28);border-radius:12px;padding:9px;font-size:.9rem;font-weight:800;text-align:center;margin-bottom:.6rem;">❓ ${d.q}</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;">${d.opts.map(o=>`<button onclick="pickFT('${o.replace(/'/g,"\\'")}','${d.ans.replace(/'/g,"\\'")}',this)" style="padding:9px 16px;border-radius:12px;border:2px solid rgba(124,58,237,.35);background:rgba(124,58,237,.15);cursor:pointer;font-size:.88rem;font-weight:700;color:var(--text);font-family:'Nunito',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(124,58,237,.3)'" onmouseout="">${o}</button>`).join('')}</div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint||'Trace the connections step by step.'}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+}
+function pickFT(val,correct,btn){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);document.querySelectorAll('#stage button').forEach(b=>{b.disabled=true;b.style.pointerEvents='none';if(b.textContent.trim()===correct){b.style.borderColor='#10B981';b.style.background='rgba(16,185,129,.25)';}});if(val===correct){btn.style.borderColor='#10B981';onCorrect(el);}else{btn.style.borderColor='#EF4444';btn.style.background='rgba(239,68,68,.2)';onWrong();}setTimeout(()=>nextQ(),1400);}
+
+/* === DRAG TO ORDER === */
+function renderSortSeq(d){
+  const items=shuf([...d.correct]);
+  window._seq={correct:d.correct,slots:Array(d.correct.length).fill(null),items};
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">📋 Drag to Order</span></div>
+    <div class="gq">${(d.q||'').replace(/\n/g,'<br>')}</div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.4rem;">Drag cards into the numbered slots:</div>
+    <div class="slots-row" id="seq-slots">${d.correct.map((_,i)=>`<div class="slot" id="ss${i}" data-i="${i}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="seqDrop(event,${i})">${i+1}</div>`).join('')}</div>
+    <div class="cards-bank" id="seq-bank">${items.map((it,i)=>`<div class="ocard" id="sqc${i}" data-val="${it}" data-i="${i}" draggable="true" ondragstart="seqDS(event,${i})">${it}</div>`).join('')}</div>
+    <div class="hint-box" id="hint-box">💡 Think about the natural or logical order of these items.</div>
+    <div class="abar"><button class="btn-ok" id="checkbtn" onclick="checkSeq()" disabled>✓ Check Order</button><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  setupSeqTouch(items);stopTimer();
+}
+function seqDS(e,i){e.dataTransfer.setData('i',i);e.dataTransfer.setData('v',$('sqc'+i).dataset.val);}
+function seqDrop(e,si){
+  e.preventDefault();$('ss'+si).classList.remove('over');
+  const i=+(window._seqTI!==undefined?window._seqTI:e.dataTransfer.getData('i'));
+  const v=window._seqTV||e.dataTransfer.getData('v');
+  window._seqTI=undefined;window._seqTV=undefined;
+  const card=$('sqc'+i);if(!card||card.classList.contains('gone'))return;
+  if(window._seq.slots[si]!==null){const p=window._seq.slots[si];const pc=$('sqc'+p.i);if(pc)pc.classList.remove('gone');}
+  window._seq.slots[si]={v,i};card.classList.add('gone');
+  const slot=$('ss'+si);slot.textContent=v;slot.classList.add('filled');
+  if(window._seq.slots.every(s=>s!==null)){const cb=$('checkbtn');if(cb)cb.disabled=false;}
+}
+function checkSeq(){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);const ok=window._seq.slots.every((s,i)=>s&&s.v===window._seq.correct[i]);ok?onCorrect(el):onWrong();setTimeout(()=>nextQ(),1400);}
+function setupSeqTouch(items){
+  let ghost=null,tI=null,tV=null;
+  items.forEach((_,i)=>{
+    const el=$('sqc'+i);if(!el)return;
+    el.addEventListener('touchstart',e=>{e.preventDefault();tI=i;tV=el.dataset.val;ghost=el.cloneNode(true);ghost.style.cssText='position:fixed;z-index:9999;opacity:.85;pointer-events:none;padding:8px 13px;border-radius:11px;background:linear-gradient(135deg,rgba(236,72,153,.25),rgba(124,58,237,.25));border:2px solid rgba(236,72,153,.4);font-size:.84rem;font-weight:700;color:white;';document.body.appendChild(ghost);const t=e.touches[0];ghost.style.left=(t.clientX-50)+'px';ghost.style.top=(t.clientY-20)+'px';},{passive:false});
+    el.addEventListener('touchmove',e=>{e.preventDefault();if(!ghost)return;const t=e.touches[0];ghost.style.left=(t.clientX-50)+'px';ghost.style.top=(t.clientY-20)+'px';document.querySelectorAll('.slot').forEach(s=>s.classList.remove('over'));const un=document.elementFromPoint(t.clientX,t.clientY);if(un?.closest('.slot'))un.closest('.slot').classList.add('over');},{passive:false});
+    el.addEventListener('touchend',e=>{if(ghost){document.body.removeChild(ghost);ghost=null;}document.querySelectorAll('.slot').forEach(s=>s.classList.remove('over'));const t=e.changedTouches[0];const un=document.elementFromPoint(t.clientX,t.clientY);const sl=un?.closest('.slot');if(sl){window._seqTI=tI;window._seqTV=tV;seqDrop({preventDefault:()=>{},dataTransfer:{getData:k=>k==='i'?tI:tV}},+sl.dataset.i);}},{passive:true});
+  });
+}
+
+/* === DIRECTION MAZE === */
+function renderMaze(d){
+  const g=d.grid||5;
+  window._mz={g,start:[...d.start],pos:[...d.start],goal:d.goal,done:false,visited:new Set([d.start[0]*10+d.start[1]]),log:[]};
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🧭 Direction Sense</span></div>
+    <div class="ibox" style="margin-bottom:.55rem;text-align:center;background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.24);">🗺️ ${d.ins}</div>
+    <div style="display:flex;gap:.75rem;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.35rem;">
+        <svg viewBox="0 0 80 80" width="68" height="68"><circle cx="40" cy="40" r="35" fill="rgba(124,58,237,.08)" stroke="rgba(124,58,237,.22)" stroke-width="1.5"/><line x1="40" y1="10" x2="40" y2="70" stroke="rgba(255,255,255,.1)" stroke-width="1"/><line x1="10" y1="40" x2="70" y2="40" stroke="rgba(255,255,255,.1)" stroke-width="1"/><text x="40" y="11" text-anchor="middle" fill="#10B981" font-size="12" font-weight="800" font-family="Nunito">N</text><text x="40" y="76" text-anchor="middle" fill="#EF4444" font-size="12" font-weight="800" font-family="Nunito">S</text><text x="74" y="44" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="800" font-family="Nunito">E</text><text x="6" y="44" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="800" font-family="Nunito">W</text><polygon points="40,14 37,30 40,26 43,30" fill="#10B981"/></svg>
+        <div style="font-size:.58rem;color:var(--muted);">compass</div>
+      </div>
+      <div><div class="maze-grid" id="mzg" style="grid-template-columns:repeat(${g},40px);"></div><div class="move-log" id="mzlog"></div></div>
+    </div>
+    <div class="dir-pad">
+      <div></div><button class="dpbtn" onclick="mzMove('N')">N↑</button><div></div>
+      <button class="dpbtn" onclick="mzMove('W')">←W</button><button class="dpbtn rst" onclick="mzReset()">↺</button><button class="dpbtn" onclick="mzMove('E')">E→</button>
+      <div></div><button class="dpbtn" onclick="mzMove('S')">S↓</button><div></div>
+    </div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint||d.ins}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  drawMaze();stopTimer();
+}
+function drawMaze(){
+  const m=window._mz,g=$('mzg');if(!g)return;g.innerHTML='';
+  for(let r=0;r<m.g;r++){for(let c=0;c<m.g;c++){
+    const div=document.createElement('div');div.className='mcell';
+    const isP=m.pos[0]===r&&m.pos[1]===c,isG=m.goal[0]===r&&m.goal[1]===c,isSt=m.start[0]===r&&m.start[1]===c,isV=m.visited.has(r*10+c);
+    if(isP)div.classList.add('player');else if(isG)div.classList.add('goal');else if(isV)div.classList.add('trail');
+    div.textContent=isP?'🏃':isG?'🏆':isSt&&!isP?'🏠':'';
+    g.appendChild(div);
+  }}
+}
+function mzMove(dir){const m=window._mz;if(m.done)return;const[r,c]=m.pos;const mv={N:[-1,0],S:[1,0],E:[0,1],W:[0,-1]};const[dr,dc]=mv[dir];const nr=Math.max(0,Math.min(m.g-1,r+dr)),nc=Math.max(0,Math.min(m.g-1,c+dc));m.pos=[nr,nc];m.visited.add(nr*10+nc);m.log.push(dir);const lg=$('mzlog');if(lg)lg.textContent='Path: '+m.log.join('→');drawMaze();if(nr===m.goal[0]&&nc===m.goal[1]){m.done=true;clearTimer();onCorrect(Math.round((Date.now()-G.qStart)/1000),true);setTimeout(()=>nextQ(),1000);}}
+function mzReset(){const m=window._mz;if(!m)return;m.pos=[...m.start];m.visited=new Set([m.start[0]*10+m.start[1]]);m.log=[];const lg=$('mzlog');if(lg)lg.textContent='';drawMaze();}
+
+/* === VENN DIAGRAM === */
+function renderVenn(d){
+  window._vn={d,placed:{A:[],B:[],AB:[]},sel:null};
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🔵 Venn Diagram</span></div>
+    <div style="font-size:.82rem;font-weight:700;text-align:center;margin-bottom:.35rem;color:var(--muted);">Tap an item → then tap its region on the diagram</div>
+    <div class="venn-outer" id="vno">
+      <svg viewBox="0 0 360 185" width="100%" style="display:block;"><ellipse cx="128" cy="92" rx="110" ry="76" fill="rgba(124,58,237,.12)" stroke="#7C3AED" stroke-width="2.5"/><ellipse cx="232" cy="92" rx="110" ry="76" fill="rgba(6,182,212,.12)" stroke="#06B6D4" stroke-width="2.5"/><text x="66" y="92" text-anchor="middle" fill="#C084FC" font-size="11" font-weight="700" font-family="Nunito">${d.cA}</text><text x="294" y="92" text-anchor="middle" fill="#67E8F9" font-size="11" font-weight="700" font-family="Nunito">${d.cB}</text><text x="180" y="178" text-anchor="middle" fill="#7C77A0" font-size="9" font-family="Nunito">Both</text></svg>
+      <div class="vzone" id="vza" onclick="vnDrop('A')" style="left:0;width:36%;border-radius:50%;"></div>
+      <div class="vzone" id="vzab" onclick="vnDrop('AB')" style="left:32%;width:36%;"></div>
+      <div class="vzone" id="vzb" onclick="vnDrop('B')" style="right:0;width:36%;border-radius:50%;"></div>
+      <div class="vplaced" id="vpA" style="left:4%;top:26%;max-width:95px;"></div>
+      <div class="vplaced" id="vpAB" style="left:33%;top:20%;width:34%;align-items:center;"></div>
+      <div class="vplaced" id="vpB" style="right:4%;top:26%;align-items:flex-end;max-width:95px;"></div>
+    </div>
+    <div style="font-size:.68rem;color:var(--muted);text-align:center;margin:.25rem 0 .4rem;">Select item → tap zone on diagram (A only / Both / B only)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:.35rem;" id="vbank">${d.items.map((it,i)=>`<div class="venn-chip" id="vc${i}" onclick="vnSel('${it}',${i})">${it}</div>`).join('')}</div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-ok" id="checkbtn" onclick="checkVenn()" disabled>✓ Check</button><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  stopTimer();
+}
+function vnSel(item,i){document.querySelectorAll('.venn-chip').forEach(c=>c.classList.remove('sel'));const el=$('vc'+i);if(el&&!el.classList.contains('used')){el.classList.add('sel');window._vn.sel={item,i};}}
+function vnDrop(zone){if(!window._vn.sel)return;const{item,i}=window._vn.sel;window._vn.placed[zone].push(item);window._vn.sel=null;const el=$('vc'+i);if(el){el.classList.add('used');el.classList.remove('sel');}['A','AB','B'].forEach(z=>{const p=$('vp'+z);if(p)p.innerHTML=window._vn.placed[z].map(it=>`<div class="vpt">${it}</div>`).join('');});const tot=Object.values(window._vn.placed).flat().length;const cb=$('checkbtn');if(cb)cb.disabled=tot<window._vn.d.items.length;}
+function checkVenn(){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);const d=window._vn.d,p=window._vn.placed,s=a=>[...a].sort().join(',');const ok=s(p.A)===s(d.onlyA)&&s(p.B)===s(d.onlyB||[])&&s(p.AB)===s(d.both);ok?onCorrect(el):onWrong();setTimeout(()=>nextQ(),1400);}
+
+/* === SCENARIO CARDS === */
+function renderScenario(d){
+  const CC=[['rgba(6,182,212,.14)','#0891B2'],['rgba(124,58,237,.14)','#7C3AED'],['rgba(245,158,11,.14)','#B45309'],['rgba(236,72,153,.14)','#BE185D']];
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🎭 Scenario</span></div>
+    <div class="scenario-box"><div class="scenario-emoji">${d.emoji||'🧩'}</div><div class="scenario-text">${d.sit}</div></div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.45rem;font-weight:700;">Tap the BEST answer:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="sc-opts">
+      ${d.choices.map((ch,i)=>`<div onclick="pickScenario(this,'${ch.replace(/'/g,"\\'").replace(/\n/g,' ')}','${d.ans.replace(/'/g,"\\'").replace(/\n/g,' ')}','${(d.hint||'').replace(/'/g,"\\'").replace(/\n/g,' ')}')" style="background:${CC[i][0]};border:2px solid ${CC[i][1]}44;border-radius:13px;padding:11px 9px;cursor:pointer;font-size:.82rem;font-weight:700;line-height:1.4;transition:all .18s;color:var(--text);" onmouseover="this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform=''"><div style="font-size:1.1rem;margin-bottom:3px;">${['🅐','🅑','🅒','🅓'][i]}</div>${ch}</div>`).join('')}
+    </div>
+    <div class="consequence" id="consequence"></div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint||''}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+}
+function pickScenario(el,val,correct,hint){
+  clearTimer();const elapsed=Math.round((Date.now()-G.qStart)/1000);
+  document.querySelectorAll('#sc-opts > div').forEach(e=>e.style.pointerEvents='none');
+  const isOk=val===correct;
+  el.style.border=`2px solid ${isOk?'#10B981':'#EF4444'}`;el.style.background=isOk?'rgba(16,185,129,.28)':'rgba(239,68,68,.18)';
+  if(!isOk){document.querySelectorAll('#sc-opts > div').forEach(e=>{if(e.textContent.includes(correct.substring(0,15))){e.style.border='2px solid #10B981';e.style.background='rgba(16,185,129,.2)';}});}
+  const cb=$('consequence');if(cb){cb.style.display='block';cb.style.background=isOk?'rgba(16,185,129,.1)':'rgba(239,68,68,.07)';cb.style.border=`1px solid ${isOk?'rgba(16,185,129,.3)':'rgba(239,68,68,.2)'}`;cb.style.color=isOk?'#6EE7B7':'#FCA5A5';cb.innerHTML=`${isOk?'✅':'❌'} <strong>${isOk?'Correct!':'Not quite.'}</strong> ${hint}`;}
+  isOk?onCorrect(elapsed):onWrong();setTimeout(()=>nextQ(),2000);
+}
+
+/* === SCRATCH CARD === */
+function renderScratch(d){
+  window._sc={d,revealed:false};
+  const allOpts=shuf([d.assumption,...d.decoys.slice(0,3)]);
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🎫 Scratch & Reveal</span></div>
+    <div class="ibox" style="margin-bottom:.55rem;background:rgba(6,182,212,.07);border-color:rgba(6,182,212,.24);text-align:center;">📢 Statement: <em>${d.stmt}</em></div>
+    <div style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:.35rem;">Scratch the card to reveal the hidden assumption:</div>
+    <div class="scratch-card" id="sccard">
+      <div class="scratch-reveal" id="screveal"><div>💡 Hidden assumption:<br><br><strong>${d.assumption}</strong></div></div>
+      <canvas id="sccanvas" width="290" height="128" style="display:block;border-radius:16px;cursor:crosshair;"></canvas>
+    </div>
+    <div style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:.4rem;">Now pick the assumption that was revealed:</div>
+    <div style="display:flex;flex-direction:column;gap:6px;" id="sc-opts">
+      ${allOpts.map(opt=>`<div onclick="pickScratch('${opt.replace(/'/g,"\\'").replace(/\n/g,' ')}','${d.assumption.replace(/'/g,"\\'").replace(/\n/g,' ')}',this)" style="background:rgba(255,255,255,.05);border:2px solid var(--border);border-radius:11px;padding:9px 13px;cursor:pointer;font-size:.83rem;font-weight:700;transition:all .18s;" onmouseover="this.style.borderColor='#C084FC';this.style.background='rgba(124,58,237,.12)'" onmouseout="">${opt}</div>`).join('')}
+    </div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  initScratch();
+}
+function initScratch(){
+  const cv=$('sccanvas');if(!cv)return;const ctx=cv.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,290,128);g.addColorStop(0,'#4C1D95');g.addColorStop(1,'#0E7490');
+  ctx.fillStyle=g;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(0,0,290,128,16);else ctx.rect(0,0,290,128);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='bold 13px Nunito';ctx.textAlign='center';ctx.fillText('✨  Scratch here to reveal  ✨',145,68);
+  let sc=false;
+  cv.addEventListener('mousedown',()=>sc=true);cv.addEventListener('mouseup',()=>sc=false);
+  cv.addEventListener('mousemove',e=>{if(!sc||window._sc.revealed)return;_scratchAt(e.offsetX,e.offsetY);});
+  cv.addEventListener('click',()=>_scratchReveal());
+  cv.addEventListener('touchstart',()=>sc=true,{passive:true});cv.addEventListener('touchend',()=>sc=false,{passive:true});
+  cv.addEventListener('touchmove',e=>{e.preventDefault();if(window._sc.revealed)return;const r=cv.getBoundingClientRect();_scratchAt(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);},{passive:false});
+  window._scCtx=ctx;window._scPx=0;
+}
+function _scratchAt(x,y){const ctx=window._scCtx;if(!ctx)return;ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,25,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation='source-over';window._scPx+=500;if(window._scPx>26000)_scratchReveal();}
+function _scratchReveal(){if(!window._sc||window._sc.revealed)return;window._sc.revealed=true;const cv=$('sccanvas');if(cv)cv.style.display='none';const rv=$('screveal');if(rv)rv.style.display='flex';}
+function pickScratch(val,correct,el){clearTimer();const elapsed=Math.round((Date.now()-G.qStart)/1000);document.querySelectorAll('#sc-opts > div').forEach(e=>{e.style.pointerEvents='none';if(e.textContent.trim()===correct){e.style.borderColor='#10B981';e.style.background='rgba(16,185,129,.18)';}});if(val===correct){onCorrect(elapsed);}else{el.style.borderColor='#EF4444';el.style.background='rgba(239,68,68,.15)';onWrong();}setTimeout(()=>nextQ(),1700);}
+
+/* === 3D DICE === */
+let _cx=-22,_cy=28,_cDrag={on:false,sx:0,sy:0,ocx:0,ocy:0};
+const _FC={front:['rgba(124,58,237,.3)','#7C3AED'],back:['rgba(6,182,212,.28)','#06B6D4'],right:['rgba(236,72,153,.25)','#EC4899'],left:['rgba(16,185,129,.25)','#10B981'],top:['rgba(245,158,11,.25)','#F59E0B'],bottom:['rgba(239,68,68,.22)','#EF4444']};
+function renderDice(d){
+  _cx=-22;_cy=28;
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🎲 Cube & Dice</span></div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.35rem;">Drag to rotate — use buttons for precise control</div>
+    <div class="cube-scene" id="cscene" style="cursor:grab;">
+      <div class="cube-3d" id="cube3d" style="transform:rotateX(${_cx}deg) rotateY(${_cy}deg);">
+        ${['front','back','right','left','top','bottom'].map(f=>`<div class="cface cf-${f}" style="background:${_FC[f][0]};border-color:${_FC[f][1]};"><div class="face-val">${d.faces[f]}</div><div class="face-lbl" style="color:${_FC[f][1]};">${f}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="rot-pad">
+      <button class="rbtn" onclick="rotC(-25,0)">↑ Tilt</button><button class="rbtn" onclick="rotC(25,0)">↓ Tilt</button>
+      <button class="rbtn" onclick="rotC(0,-25)">← Spin</button><button class="rbtn" onclick="rotC(0,25)">→ Spin</button>
+      <button class="rbtn" onclick="_cx=-22;_cy=28;rotC(0,0)">↺ Reset</button>
+    </div>
+    <div class="ibox" style="margin-bottom:.55rem;text-align:center;">${d.q}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;" id="dice-opts">
+      ${d.choices.map(c=>`<button onclick="pickDice(this,'${c}','${d.ans}')" style="min-width:68px;padding:11px 16px;border-radius:12px;border:2px solid rgba(124,58,237,.35);background:rgba(124,58,237,.15);font-size:.95rem;font-weight:800;cursor:pointer;color:var(--text);font-family:'Nunito',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(124,58,237,.3)'" onmouseout="">${c}</button>`).join('')}
+    </div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+  const sc=$('cscene');
+  if(sc){
+    sc.addEventListener('mousedown',e=>{e.preventDefault();_cDrag={on:true,sx:e.clientX,sy:e.clientY,ocx:_cx,ocy:_cy};});
+    document.addEventListener('mousemove',e=>{if(!_cDrag.on)return;_cx=_cDrag.ocx+(e.clientY-_cDrag.sy)*.4;_cy=_cDrag.ocy+(e.clientX-_cDrag.sx)*.4;const c=$('cube3d');if(c)c.style.transform=`rotateX(${_cx}deg) rotateY(${_cy}deg)`;});
+    document.addEventListener('mouseup',()=>{_cDrag.on=false;});
+    let tx=0,ty=0,ox=_cx,oy=_cy;
+    sc.addEventListener('touchstart',e=>{e.preventDefault();tx=e.touches[0].clientX;ty=e.touches[0].clientY;ox=_cx;oy=_cy;},{passive:false});
+    sc.addEventListener('touchmove',e=>{e.preventDefault();_cx=ox+(e.touches[0].clientY-ty)*.4;_cy=oy+(e.touches[0].clientX-tx)*.4;const c=$('cube3d');if(c)c.style.transform=`rotateX(${_cx}deg) rotateY(${_cy}deg)`;},{passive:false});
+  }
+}
+function rotC(dx,dy){_cx+=dx;_cy+=dy;const c=$('cube3d');if(c)c.style.transform=`rotateX(${_cx}deg) rotateY(${_cy}deg)`;}
+function pickDice(btn,val,correct){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);document.querySelectorAll('#dice-opts button').forEach(b=>{b.style.pointerEvents='none';if(b.textContent.trim()===correct){b.style.borderColor='#10B981';b.style.background='rgba(16,185,129,.25)';}});if(val===correct){onCorrect(el);}else{btn.style.borderColor='#EF4444';btn.style.background='rgba(239,68,68,.2)';onWrong();}setTimeout(()=>nextQ(),1400);}
+
+/* === MATH OPS === */
+function renderMathOps(d){
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">➕ Symbol Swap</span></div>
+    <div class="rule-box"><div class="rule-lbl">📋 Symbol Rule:</div><div class="rule-text">${d.rule}</div></div>
+    <div class="eq-box"><div style="font-size:.7rem;color:var(--muted);margin-bottom:5px;">Solve using the rule above:</div><div class="eq-text">${d.eq}</div></div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.45rem;">Tap your answer:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:310px;margin:0 auto;" id="mo-opts">
+      ${d.choices.map((c,i)=>`<div onclick="pickMO(this,'${c}','${d.ans}')" style="background:rgba(245,158,11,${['.12','.09','.07','.13'][i]});border:2px solid rgba(245,158,11,.32);border-radius:14px;padding:15px;text-align:center;cursor:pointer;transition:all .18s;" onmouseover="this.style.background='rgba(245,158,11,.24)';this.style.transform='scale(1.03)'" onmouseout="this.style.transform=''"><div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gold);">${c}</div></div>`).join('')}
+    </div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+}
+function pickMO(el,val,correct){clearTimer();const elapsed=Math.round((Date.now()-G.qStart)/1000);document.querySelectorAll('#mo-opts > div').forEach(e=>{e.style.pointerEvents='none';if(e.querySelector('div').textContent.trim()===correct){e.style.borderColor='#10B981';e.style.background='rgba(16,185,129,.22)';}});if(val===correct){el.style.borderColor='#10B981';el.style.background='rgba(16,185,129,.28)';onCorrect(elapsed);}else{el.style.borderColor='#EF4444';el.style.background='rgba(239,68,68,.18)';onWrong();}setTimeout(()=>nextQ(),1400);}
+
+/* === MISSING TILE === */
+function renderMissingTile(d){
+  const seqHTML=d.seq.map((v,i)=>{const isB=i===d.blankAt;return(i>0?'<div style="color:var(--muted);font-size:.82rem;font-weight:700;">→</div>':'')+`<div class="stile${isB?' blank':''}" ${isB?'id="mtblankY"':''}>${v}</div>`;}).join('');
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">❓ Fill the Gap</span></div>
+    <div style="font-size:.84rem;font-weight:700;text-align:center;color:var(--muted);margin-bottom:.45rem;">Find the missing term in the sequence:</div>
+    <div class="seq-row">${seqHTML}</div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.45rem;">Tap the correct missing term:</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;" id="mt-opts">
+      ${d.choices.map(c=>`<div onclick="pickMT(this,'${c}','${d.ans}')" style="min-width:74px;padding:12px 15px;border-radius:13px;background:rgba(139,92,246,.15);border:2px solid rgba(139,92,246,.35);font-size:1.02rem;font-weight:800;text-align:center;cursor:pointer;transition:all .18s;color:var(--text);" onmouseover="this.style.background='rgba(139,92,246,.3)';this.style.borderColor='#A855F7'" onmouseout="">${c}</div>`).join('')}
+    </div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+}
+function pickMT(el,val,correct){clearTimer();const elapsed=Math.round((Date.now()-G.qStart)/1000);document.querySelectorAll('#mt-opts > div').forEach(e=>{e.style.pointerEvents='none';if(e.textContent.trim()===correct){e.style.borderColor='#10B981';e.style.background='rgba(16,185,129,.22)';}});const blank=$('mtblankY');if(val===correct){if(blank){blank.textContent=val;blank.classList.remove('blank');blank.classList.add('solved');}onCorrect(elapsed);}else{if(blank){blank.textContent=correct;blank.classList.remove('blank');blank.classList.add('solved');}el.style.borderColor='#EF4444';el.style.background='rgba(239,68,68,.18)';onWrong();}setTimeout(()=>nextQ(),1500);}
+
+/* === PATTERN PAINTER === */
+function renderPattern(d){
+  window._pat={given:d.given,ans:d.answer,painted:d.answer.map(()=>0)};
+  const cols=d.given.length+d.answer.length;
+  const givenHTML=d.given.map(v=>`<div class="pcell given">${v?'●':''}</div>`).join('');
+  const targetHTML=d.answer.map((_,i)=>`<div class="pcell target" id="pc${i}" onclick="paintCell(${i})"></div>`).join('');
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">🎨 Pattern Painter</span></div>
+    <div class="ibox" style="margin-bottom:.55rem;text-align:center;">📏 ${d.rule}</div>
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.35rem;">← Given pattern &nbsp;|&nbsp; Paint the next cells →</div>
+    <div class="pat-grid" id="pgrid" style="grid-template-columns:repeat(${cols},44px);margin:0 auto .5rem;">${givenHTML}${targetHTML}</div>
+    <div style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:.5rem;">Tap dashed cells to colour/uncolour them ●</div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-ok" onclick="checkPattern()">✓ Check Pattern</button><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+}
+function paintCell(i){const p=window._pat;p.painted[i]=p.painted[i]?0:1;const el=$('pc'+i);if(el){el.classList.toggle('painted',!!p.painted[i]);el.textContent=p.painted[i]?'●':'';}}
+function checkPattern(){clearTimer();const el=Math.round((Date.now()-G.qStart)/1000);const p=window._pat;const ok=p.painted.every((v,i)=>v===p.ans[i]);p.painted.forEach((v,i)=>{const ce=$('pc'+i);if(ce)ce.classList.add(v===p.ans[i]?'right':'wrong');});ok?onCorrect(el):onWrong();setTimeout(()=>nextQ(),1600);}
+
+/* === REFLECTION === */
+function renderReflection(d){
+  const isMirror=d.rtype==='mirror';
+  let displayHTML='';
+  if(isMirror){
+    displayHTML=`<div style="display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:.7rem;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="ref-orig" style="width:100px;height:86px;">${d.orig}</div><div style="font-size:.62rem;color:var(--muted);">Original</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;width:52px;gap:2px;"><div style="font-size:.56rem;color:#C084FC;font-weight:700;">mirror</div><div style="width:3px;height:86px;background:linear-gradient(to bottom,transparent 0%,#C084FC 30%,#C084FC 70%,transparent 100%);border-radius:2px;"></div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="ref-q" style="width:100px;height:86px;">?</div><div style="font-size:.62rem;color:var(--muted);">Mirror image</div></div>
+    </div>`;
+  }else{
+    displayHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:.7rem;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="font-size:.62rem;color:var(--muted);">Original</div><div class="ref-orig" style="width:106px;height:78px;">${d.orig}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;height:40px;justify-content:center;"><div style="font-size:.56rem;color:#06B6D4;font-weight:700;">〰 water surface 〰</div><div style="height:3px;width:145px;background:linear-gradient(to right,transparent,#06B6D4 25%,#67E8F9 50%,#06B6D4 75%,transparent);border-radius:2px;"></div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="ref-q" style="width:106px;height:78px;">?</div><div style="font-size:.62rem;color:var(--muted);">Water reflection</div></div>
+    </div>`;
+  }
+  $('stage').innerHTML=`<div style="text-align:center;margin-bottom:.4rem;"><span class="gtag">${isMirror?'🪞 Mirror Image':'💧 Water Image'}</span></div>
+    <div style="font-size:.78rem;font-weight:700;text-align:center;color:var(--muted);margin-bottom:.5rem;">${isMirror?'↔ Left–Right flip — pick the correct mirror image':'↕ Top–Bottom flip — pick the correct water reflection'}</div>
+    ${displayHTML}
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.4rem;">Tap the correct answer:</div>
+    <div class="ref-opts" id="ref-opts">
+      ${d.opts.map((opt,i)=>`<div class="ropt" id="ropt${i}" onclick="pickRef(this,'${opt.replace(/'/g,"\\'")}','${d.ans.replace(/'/g,"\\'")}')"><div>${opt}</div><div class="ropt-lbl">${['A','B','C','D'][i]}</div></div>`).join('')}
+    </div>
+    <div class="hint-box" id="hint-box">💡 ${d.hint}</div>
+    <div class="abar"><button class="btn-hint" onclick="showHint()">💡 Hint</button><button class="btn-skip" onclick="skipQ()">Skip →</button></div>`;
+}
+function pickRef(el,val,correct){clearTimer();const elapsed=Math.round((Date.now()-G.qStart)/1000);document.querySelectorAll('.ropt').forEach(e=>{e.style.pointerEvents='none';if(e.querySelector('div').textContent.trim()===correct)e.classList.add('right');});if(val===correct){el.classList.add('right');onCorrect(elapsed);}else{el.classList.add('wrong');onWrong();}setTimeout(()=>nextQ(),1400);}
+
+/* === SCORING === */
+function onCorrect(elapsed,noTimer=false){
+  G.correct++;G.combo++;G.streak++;if(G.combo>G.bestCombo)G.bestCombo=G.combo;
+  if(!noTimer&&elapsed<G.fastestTime)G.fastestTime=elapsed;
+  const tb=noTimer?40:Math.max(0,45-elapsed)*4;const cb=G.combo>1?G.combo*25:0;
+  const pts=100+tb+cb;G.score+=pts;G.xp+=25+G.combo*5;
+  if(G.score>G.topScore){G.topScore=G.score;saveProgress();}updateHUD();
+  if(G.combo>1)showCombo();showFP(true,`+${pts}`);
+  spawnParticles(G.combo>=3?'🔥':'⭐',innerWidth/2,innerHeight*.48);
+  if(G.xp>=200){G.xp-=200;G.level++;setTimeout(showLevelUp,700);}
+}
+function onWrong(){G.combo=0;G.streak=0;if(G.lives>0){G.lives--;const h=document.querySelectorAll('.hrt');if(h[G.lives])h[G.lives].classList.add('dead');}showFP(false);if(G.lives<=0){clearTimer();setTimeout(showResults,800);}}
+function showFP(ok,pts=''){const o=document.querySelector('.fp');if(o)o.remove();const dv=document.createElement('div');dv.className=`fp ${ok?'ok':'no'}`;dv.innerHTML=`<div class="fp-ico">${ok?'🎯':'💥'}</div><div class="fp-word">${ok?'CORRECT!':'WRONG!'}</div>${pts?`<div class="fp-pts">${pts} pts</div>`:''}`; document.body.appendChild(dv);setTimeout(()=>dv.remove(),1300);}
+function showCombo(){const o=document.querySelector('.combo');if(o)o.remove();const dv=document.createElement('div');dv.className='combo';dv.textContent=`🔥 ${G.combo}x COMBO!`;document.body.appendChild(dv);setTimeout(()=>dv.remove(),1500);}
+function spawnParticles(e,x,y){for(let i=0;i<7;i++){const p=document.createElement('div');p.className='ptcl';const a=(i/7)*Math.PI*2,dist=58+Math.random()*48;p.style.cssText=`left:${x}px;top:${y}px;--dx:${Math.cos(a)*dist}px;--dy:${Math.sin(a)*dist-105}px;--d:${.6+Math.random()*.5}s;--r:${Math.random()*720}deg`;p.textContent=e;document.body.appendChild(p);setTimeout(()=>p.remove(),1250);}}
+function showLevelUp(){const dv=document.createElement('div');dv.className='lv-ov';dv.innerHTML=`<div class="lv-box"><span class="lv-star">⭐</span><h2>LEVEL ${G.level}!</h2><p>You are getting sharper, champion!</p><button class="btn-cont" onclick="this.closest('.lv-ov').remove()">Continue ▶</button></div>`;document.body.appendChild(dv);}
+
+/* === TIMER === */
+function startTimer(t=30){clearTimer();G.timeLeft=t;const circ=94;
+  const tick=()=>{G.timeLeft--;const f=$('rfill'),n=$('rnum');if(f){f.style.strokeDashoffset=circ*(1-G.timeLeft/t);f.style.stroke=G.timeLeft<=8?'#EF4444':G.timeLeft<=18?'#F59E0B':'#06B6D4';}if(n)n.textContent=G.timeLeft;if(G.timeLeft<=0){clearTimer();onWrong();setTimeout(()=>nextQ(),700);}};
+  G.timerInt=setInterval(tick,1000);}
+function stopTimer(){clearTimer();const f=$('rfill'),n=$('rnum');if(f){f.style.strokeDashoffset='0';f.style.stroke='#06B6D4';}if(n)n.textContent='∞';}
+function clearTimer(){clearInterval(G.timerInt);G.timerInt=null;}
+function updateHUD(){$('hScore').textContent=G.score.toLocaleString();$('hLvG').textContent=G.level;$('xpbar').style.width=Math.min(100,(G.xp/200)*100)+'%';document.querySelectorAll('.hrt').forEach((e,i)=>e.classList.toggle('dead',i>=G.lives));}
+
+/* === RESULTS === */
+function showResults(){
+  clearTimer();const pct=G.total>0?Math.round((G.correct/G.total)*100):0;
+  let trophy='🏅',title='KEEP GOING!';
+  if(pct>=90){trophy='🏆';title='OUTSTANDING!';}else if(pct>=75){trophy='🥇';title='EXCELLENT!';}else if(pct>=60){trophy='🥈';title='WELL DONE!';}
+  $('rTrophy').textContent=trophy;$('rTitle').textContent=title;$('rPts').textContent=G.score.toLocaleString();
+  $('rCorr').textContent=`${G.correct}/${G.total}`;$('rCombo').textContent=G.bestCombo+'x';$('rFast').textContent=G.fastestTime<999?G.fastestTime+'s':'—';
+
+  // Source banner on results
+  const isAI=G.isAISession;
+  const model=GEMINI_MODELS[_modelIdx]||'';
+  const srcBanner=isAI
+    ?`<div style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,rgba(124,58,237,.22),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.4);border-radius:20px;padding:5px 14px;font-size:.72rem;font-weight:800;color:#C084FC;margin-bottom:.8rem;">
+        🤖 AI Generated &nbsp;·&nbsp; <span style="color:var(--teal);font-weight:600;">${model}</span>
+      </div>`
+    :`<div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 14px;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.8rem;">
+        📚 Built-in Questions
+      </div>`;
+
+  $('rBars').innerHTML=srcBanner+[{l:'Accuracy',v:pct,c:'#7C3AED'},{l:'Speed',v:G.fastestTime<999?Math.min(100,Math.round((1-G.fastestTime/45)*100)):0,c:'#06B6D4'},{l:'Combo Power',v:Math.min(100,G.bestCombo*20),c:'#F59E0B'}]
+    .map(b=>`<div class="bi"><div class="bi-lbl"><span>${b.l}</span><span>${b.v}%</span></div><div class="bi-track"><div class="bi-fill" style="width:0%;background:${b.c};" data-w="${b.v}"></div></div></div>`).join('');
+  showScr('results');
+  setTimeout(()=>document.querySelectorAll('.bi-fill').forEach(e=>e.style.width=e.dataset.w+'%'),200);
+  for(let i=0;i<16;i++)setTimeout(()=>spawnParticles(['🎉','⭐','✨','🔥'][i%4],Math.random()*innerWidth,Math.random()*120),i*80);
+}
+
+/* ════ GEMINI AI INTEGRATION ════ */
+/* ════════════════════════════════════════════════════════
+   GEMINI AI INTEGRATION — MindQuest
+   Generates fresh questions for each game type dynamically
+════════════════════════════════════════════════════════ */
+
+/* ── AI Integration variables declared at top of script ── */
+
+/* ── Exact JSON schemas per game type ── */
+const SCHEMAS = {
+  memory: `Return a JSON array of exactly 8 pairs (16 items total) for an Analogy memory flip card game for Class 7 students.
+Format: [["Term1","RelatedTerm1"],["Term2","RelatedTerm2"],...]
+Example pairs: ["Pen","Writer"], ["Doctor","Hospital"], ["Fish","Water"]
+Each pair must be a clear analogy relationship. Vary the types: person-tool, place-thing, cause-effect, part-whole.
+Return ONLY the JSON array. No markdown, no explanation.`,
+
+  sortbasket_classification: `Return a JSON object for a Classification sort-basket game for Class 7 students.
+Format: {"cats":["Cat1","Cat2","Cat3"],"items":{"Cat1":["item","item","item"],"Cat2":["item","item","item"],"Cat3":["item","item","item"]}}
+Make 3 clear categories with 3 items each. Items must clearly belong to exactly one category.
+Vary themes: could be animals, plants, elements, sports, jobs, etc.
+Return ONLY the JSON object. No markdown.`,
+
+  sortbasket_courses: `Return a JSON object for a Courses of Action sort-basket game for Class 7 students.
+Format: {"cats":["Effective Action","Ineffective Action"],"items":{"Effective Action":["action1","action2","action3"],"Ineffective Action":["action1","action2","action3"]}}
+Effective = practical, addresses root cause. Ineffective = extreme, illogical, or irrelevant.
+Keep each item under 9 words. Return ONLY the JSON object. No markdown.`,
+
+  conveyor: `Return a JSON array of exactly 4 series completion questions for Class 7 students.
+Format: [{"seq":["a","b","c","d","?"],"ans":"e","d":["w1","w2","w3"],"hint":"1 sentence rule"}]
+- seq: 5 items, last is "?" - ans: correct next term - d: 3 wrong answers - hint: brief rule
+Mix: arithmetic, geometric, squares, letter patterns. Return ONLY JSON array. No markdown.`,
+
+  cipher: `Return a JSON array of exactly 4 coding-decoding questions for Class 7 using letter +1 shift cipher.
+Format: [{"enc":"ENCODED","shift":1,"dec":"DECODED","rule":"Each letter shifted +1 to encode. Subtract 1 to decode."}]
+- enc: ALL CAPS 4-6 letter common word encoded by +1 shift
+- dec: original word ALL CAPS
+- Verify: MAIL→NBJM, BOOK→CPPL, LION→MJPO
+Return ONLY JSON array. No markdown.`,
+
+  familytree: `Return a JSON array of exactly 2 blood relation questions for Class 7 students.
+Format: [{"story":"brief relation description","nodes":[{"l":"Name","r":"male|female","top":1|0}],"q":"question","opts":["opt1","opt2","opt3","opt4"],"ans":"correct option","hint":"explanation"}]
+- top:1=parent, top:0=child. Always 2 parents + 2 children. Return ONLY JSON array. No markdown.`,
+
+  sortseq: `Return a JSON array of exactly 3 logical sequence ordering questions for Class 7 students.
+Format: [{"q":"question text","items":["shuffled","list","of","items"],"correct":["correct","order","of","items"]}]
+Themes: life cycles, processes, hierarchy, historical order. Keep items short (1-3 words each).
+Return ONLY the JSON array. No markdown.`,
+
+  maze: `Return a JSON array of exactly 2 direction sense navigation questions for Class 7 students.
+Format: [{"ins":"Go N steps North then E steps East","grid":5,"start":[4,0],"goal":[row,col],"hint":"step by step hint"}]
+- Grid is 5x5. start=[4,0] (bottom-left). N=row-1, S=row+1, E=col+1, W=col-1.
+- Example: "Go 3 North, 2 East" from [4,0] → goal=[1,2]. Verify your goal coordinates match the instructions.
+Return ONLY JSON array. No markdown.`,
+
+  venn: `Return a JSON array of exactly 2 Venn diagram classification questions for Class 7 students.
+Format: [{"cA":"Circle A label","cB":"Circle B label","items":["item1",...8 items total],"onlyA":["items only in A"],"onlyB":["items only in B"],"both":["items in both"],"hint":"explanation"}]
+- items: all 8 items combined (onlyA + onlyB + both)
+- Items in "both" must satisfy BOTH circle conditions
+- Items in "onlyA" satisfy only circle A
+- Items in "onlyB" satisfy only circle B
+Return ONLY the JSON array. No markdown.`,
+
+  scenario: `Return a JSON array of exactly 3 scenario-based questions for Class 7 students on the topic: TOPIC_PLACEHOLDER.
+Format: [{"emoji":"relevant emoji","sit":"scenario or statement text (use \\n for line breaks)","choices":["option A","option B","option C","option D"],"ans":"exact text of correct choice","hint":"explanation of why this is correct"}]
+- sit: describe the situation clearly, or show statements/assertions as given
+- choices: exactly 4 options, only one correct
+- ans: must match exactly one of the choices
+- Keep all text school-appropriate for 13-year-olds
+Return ONLY the JSON array. No markdown.`,
+
+  scratch: `Return a JSON array of exactly 3 statement & assumption questions for Class 7 students.
+Format: [{"stmt":"the statement","assumption":"implicit assumption","decoys":["w1","w2","w3"],"hint":"why this is the assumption"}]
+Keep stmt and assumption short (under 15 words each). Return ONLY JSON array. No markdown.`,
+
+  dice3d: `Return a JSON array of exactly 3 cube and dice questions for Class 7 students.
+Format: [{"faces":{"front":"val","back":"val","right":"val","left":"val","top":"val","bottom":"val"},"q":"question","ans":"answer","choices":["a","b","c","d"],"hint":"explanation"}]
+Use numbers 1-6 (opposite faces sum to 7) or letters A-F. Keep question under 15 words.
+Return ONLY JSON array. No markdown.`,
+
+  pattern: `Return a JSON array of exactly 3 pattern/rules questions for Class 7 students.
+Format: [{"rule":"Rule description","given":[1,0,1,0,1,0],"answer":[1,0],"hint":"explanation"}]
+given: 0s and 1s (known pattern). answer: next 2-3 cells. rule: clear description.
+Return ONLY JSON array. No markdown.`,
+
+  mathops: `Return a JSON array of exactly 4 mathematical operations questions where symbols are swapped.
+Format: [{"rule":"symbol rule","eq":"3 + 4 = ?","ans":"12","choices":["7","12","14","9"],"hint":"working"}]
+Keep rule under 10 words. Verify arithmetic is correct. Return ONLY JSON array. No markdown.`,
+
+  missingtile: `Return a JSON array of exactly 4 missing-term sequence questions for Class 7 students.
+Format: [{"seq":["a","b","?","d"],"ans":"c","blankAt":2,"choices":["c","w1","w2","w3"],"hint":"rule"}]
+blankAt is the 0-indexed position of "?". Keep all seq items short. Return ONLY JSON array. No markdown.`,
+
+  reflection_mirror: `Return a JSON array of exactly 5 mirror image questions for Class 7 students.
+Format: [{"orig":"b","opts":["d","p","q","b"],"ans":"d","hint":"Mirror flips left-right: b→d"}]
+orig: single letter/number/symbol. ans: its left-right mirror image. opts: 4 options including ans.
+Known mirrors: b→d, p→q, 3→Ɛ, F→ꟻ, E→Ǝ, <→>, d→b. Return ONLY JSON array. No markdown.`,
+
+  reflection_water: `Return a JSON array of exactly 5 water image questions for Class 7 students.
+Format: [{"orig":"A","opts":["∀","V","Λ","A"],"ans":"∀","hint":"Water flips top-bottom: A→∀"}]
+orig: single letter/number. ans: its top-bottom flip. opts: 4 options including ans.
+Known water images: A→∀, M→W, T→⊥, p→b, n→u, U→∩. Return ONLY JSON array. No markdown.`,
+};
+
+/* ── Call Gemini API — smart model selection ──
+   Strategy:
+   - 403 = billing required → skip this model permanently
+   - 429 = rate limited → wait (with backoff) and retry SAME model up to 3 times
+   - 404 = model doesn't exist → skip
+   - 200 = success → remember this model, use it again next time
+*/
+/* ── Model list and state declared at top of script ── */
+
+/* Fetch the real list of available models via server proxy */
+async function discoverModels() {
+  if (_modelsDiscovered) return;
+  try {
+    const res = await fetch('/api/models');
+    if (!res.ok) { _modelsDiscovered = true; return; }
+    const data = await res.json();
+    // Get all generateContent-capable flash models
+    const found = (data.models || [])
+      .filter(m => (m.supportedGenerationMethods||[]).includes('generateContent')
+               && (m.name.includes('flash') || m.name.includes('lite'))
+               && !m.name.includes('tts') && !m.name.includes('image')
+               && !m.name.includes('audio') && !m.name.includes('video'))
+      .map(m => m.name.replace('models/', ''));
+    if (found.length > 0) {
+      // Merge discovered with our candidates, prioritise discovered
+      const merged = [...new Set([...found, ...GEMINI_MODELS])];
+      GEMINI_MODELS = merged;
+      console.log('Discovered models:', found);
+      const sel = document.getElementById('model-select');
+      if (sel) sel.innerHTML = GEMINI_MODELS.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+    }
+    _modelsDiscovered = true;
+  } catch(e) {
+    console.warn('Model discovery failed:', e.message);
+    _modelsDiscovered = true;
+  }
+}
+
+async function callGemini(prompt, isTest=false) {
+  if (!_modelsDiscovered) await discoverModels();
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: isTest ? 30 : 4096  // increased to avoid truncation
+    }
+  };
+  if (!isTest) body.generationConfig.responseMimeType = 'application/json';
+
+  const nonBlocked = GEMINI_MODELS.filter(m => !_blockedModels.has(m));
+  if (nonBlocked.length === 0) throw new Error('No available models. All are billing-required (403) or missing (404). Check your API key at aistudio.google.com');
+
+  for (let mi = 0; mi < nonBlocked.length; mi++) {
+    const model = nonBlocked[mi];
+    const url = '/api/gemini';
+
+    for (let retry = 0; retry < 3; retry++) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, body })
+        });
+
+        if (res.status === 403 || res.status === 404) {
+          _blockedModels.add(model);
+          console.warn(`${model} → ${res.status} (blocked permanently)`);
+          break;
+        }
+
+        if (res.status === 429 || res.status === 503) {
+          const errData = await res.json().catch(()=>({}));
+          const msg = errData?.error?.message || '';
+          const waitMatch = msg.match(/retry.*?(\d+)/i) || msg.match(/(\d+)\s*s/i);
+          const waitMs = waitMatch ? Math.min(parseInt(waitMatch[1])*1000+500, 35000) : (retry+1)*4000;
+          console.warn(`${model} → 429, waiting ${Math.round(waitMs/1000)}s…`);
+          const sub = document.getElementById('ai-loading-sub');
+          if (sub) {
+            let secs = Math.round(waitMs/1000);
+            const cd = setInterval(()=>{ secs--; if(sub)sub.textContent=`Rate limited — retrying in ${secs}s…`; if(secs<=0)clearInterval(cd); }, 1000);
+            await new Promise(r => setTimeout(r, waitMs));
+            clearInterval(cd);
+          } else {
+            await new Promise(r => setTimeout(r, waitMs));
+          }
+          continue;
+        }
+
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err?.error?.message || `API error ${res.status}`);
+        }
+
+        const data = await res.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!rawText) throw new Error('Empty response from model');
+
+        _modelIdx = GEMINI_MODELS.indexOf(model);
+        console.log(`✅ ${model} succeeded`);
+        if (isTest) return rawText.trim();
+
+        return parseGeminiJSON(rawText);
+
+      } catch(e) {
+        if (e.message.startsWith('JSON_FAIL:')) throw new Error(e.message.replace('JSON_FAIL:',''));
+        if (retry === 2) { console.warn(`${model} failed after 3 retries:`, e.message); break; }
+        if (!e.message.includes('429') && !e.message.includes('rate') && !e.message.includes('quota')) throw e;
+      }
+    }
+  }
+  throw new Error('All models rate-limited. Please wait 1–2 minutes and try again.');
+}
+
+/* ── Robust JSON parser — handles truncated/wrapped responses ── */
+function parseGeminiJSON(text) {
+  // 1. Strip markdown fences
+  let s = text.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
+
+  // 2. Try direct parse first
+  try { return JSON.parse(s); } catch(_) {}
+
+  // 3. Extract JSON array or object using bracket matching
+  const tryExtract = (open, close) => {
+    const start = s.indexOf(open);
+    if (start === -1) return null;
+    let depth = 0, inStr = false, esc = false;
+    for (let i = start; i < s.length; i++) {
+      const c = s[i];
+      if (esc) { esc = false; continue; }
+      if (c === '\\' && inStr) { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === open) depth++;
+      else if (c === close) { depth--; if (depth === 0) return s.slice(start, i+1); }
+    }
+    return null;
+  };
+
+  // Try array first, then object
+  const arr = tryExtract('[', ']');
+  if (arr) { try { return JSON.parse(arr); } catch(_) {} }
+  const obj = tryExtract('{', '}');
+  if (obj) { try { return JSON.parse(obj); } catch(_) {} }
+
+  // 4. If truncated array, try to close it
+  if (s.startsWith('[')) {
+    // Find last complete object in array
+    let fixed = s;
+    // Remove trailing incomplete object
+    const lastComma = fixed.lastIndexOf('},');
+    const lastBrace = fixed.lastIndexOf('}');
+    if (lastBrace > lastComma) {
+      fixed = fixed.slice(0, lastBrace+1) + ']';
+    } else if (lastComma > 0) {
+      fixed = fixed.slice(0, lastComma+1).replace(/,\s*$/, '') + ']';
+    }
+    try { const r = JSON.parse(fixed); if (Array.isArray(r) && r.length > 0) return r; } catch(_) {}
+  }
+
+  // 5. Nothing worked
+  throw new Error('JSON_FAIL:Could not parse AI response. The model returned malformed JSON. Please try regenerating.');
+}
+
+/* ── Generate questions for a topic ── */
+async function generateQuestions(topic) {
+  const cacheKey = topic.id;
+  if (AI_CACHE[cacheKey]) return AI_CACHE[cacheKey];
+
+  let schema = '';
+  let topicHint = topic.n;
+
+  switch (topic.gt) {
+    case 'memory':       schema = SCHEMAS.memory; break;
+    case 'sortbasket':
+      schema = topic.id === 'courses' ? SCHEMAS.sortbasket_courses : SCHEMAS.sortbasket_classification;
+      break;
+    case 'conveyor':     schema = SCHEMAS.conveyor; break;
+    case 'cipher':       schema = SCHEMAS.cipher; break;
+    case 'familytree':   schema = SCHEMAS.familytree; break;
+    case 'sortseq':      schema = SCHEMAS.sortseq; break;
+    case 'maze':         schema = SCHEMAS.maze; break;
+    case 'venn':         schema = SCHEMAS.venn; break;
+    case 'scenario':
+      schema = SCHEMAS.scenario.replace('TOPIC_PLACEHOLDER', topic.n);
+      break;
+    case 'scratch':      schema = SCHEMAS.scratch; break;
+    case 'dice3d':       schema = SCHEMAS.dice3d; break;
+    case 'pattern':      schema = SCHEMAS.pattern; break;
+    case 'mathops':      schema = SCHEMAS.mathops; break;
+    case 'missingtile':  schema = SCHEMAS.missingtile; break;
+    case 'reflection':
+      schema = topic.data.type === 'mirror' ? SCHEMAS.reflection_mirror : SCHEMAS.reflection_water;
+      break;
+    default: return null;
+  }
+
+  // Keep prompt short to reduce token usage and rate limit risk
+  const fullPrompt = `Generate questions for Class 7 Indian students (age 12-13), mental ability topic: ${topic.n}.
+${schema}
+Rules: age-appropriate, use Indian names/context where natural, factually correct. Return ONLY valid JSON.`;
+
+  const result = await callGemini(fullPrompt);
+
+  // Transform result into the format our game expects
+  const transformed = transformAIResult(topic, result);
+  AI_CACHE[cacheKey] = transformed;
+  return transformed;
+}
+
+/* ── Transform AI result into game data format ── */
+function transformAIResult(topic, result) {
+  switch (topic.gt) {
+    case 'memory':
+      return { pairs: Array.isArray(result) ? result : topic.data.pairs };
+
+    case 'sortbasket':
+      if (result.cats && result.items) return result;
+      return topic.data;
+
+    case 'conveyor':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'cipher':
+      return { qs: Array.isArray(result) ? result.map(q => ({
+        enc: (q.enc||'').toUpperCase(),
+        shift: q.shift || 1,
+        dec: (q.dec||'').toUpperCase(),
+        rule: q.rule || 'Each letter +1 to encode. Subtract 1 to decode.'
+      })) : topic.data.qs };
+
+    case 'familytree':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'sortseq':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'maze':
+      return { qs: Array.isArray(result) ? result.map(q => ({
+        ins: q.ins || q.instruction || '',
+        grid: q.grid || 5,
+        start: q.start || [4,0],
+        goal: q.goal || q.target || [1,3],
+        hint: q.hint || ''
+      })) : topic.data.qs };
+
+    case 'venn':
+      return { qs: Array.isArray(result) ? result.map(q => ({
+        cA: q.cA || q.circleA || '',
+        cB: q.cB || q.circleB || '',
+        items: q.items || [],
+        onlyA: q.onlyA || [],
+        onlyB: q.onlyB || [],
+        both: q.both || [],
+        hint: q.hint || ''
+      })) : topic.data.qs };
+
+    case 'scenario':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'scratch':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'dice3d':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'pattern':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'mathops':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'missingtile':
+      return { qs: Array.isArray(result) ? result : topic.data.qs };
+
+    case 'reflection':
+      return {
+        type: topic.data.type,
+        qs: Array.isArray(result) ? result.map(q => ({
+          orig: q.orig || '',
+          opts: q.opts || [],
+          ans: q.ans || '',
+          hint: q.hint || ''
+        })) : topic.data.qs
+      };
+
+    default:
+      return topic.data;
+  }
+}
+
+/* ── AI GLUE — no function re-declarations ── */
+
+/* ── Helpers ── */
+function setStatus(msg,color){const el=document.getElementById('api-status');if(el){el.textContent=msg;el.style.color=color;}}
+function toggleKeyVisibility(){const inp=document.getElementById('api-key-input'),btn=document.getElementById('eye-btn');if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁';}}
+
+/* ── API Key Save ── */
+async function saveApiKey(){} // key is server-side on Vercel
+function skipAI(){_rawShowScr('home');}
+function setStatus(){} // no-op in Vercel version
+function toggleKeyVisibility(){}
+
+/* ── Internal nav (uses the base showScr directly) ── */
+function _rawShowScr(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
+
+function _navToHome(){
+  _rawShowScr('home');
+  const rb=document.getElementById('regen-btn');if(rb)rb.remove();
+}
+
+/* ── Build question queue from AI or static data ── */
+function buildQueueFromData(t,data){
+  const qs=[];
+  const src=data||t.data;
+  if(t.gt==='memory'){qs.push({type:'memory',d:src});}
+  else if(t.gt==='sortbasket'){qs.push({type:'sortbasket',d:src});}
+  else if(['conveyor','cipher','familytree','sortseq','maze','venn','scenario','scratch','dice3d','pattern','mathops','missingtile'].includes(t.gt)){
+    (src.qs||[]).forEach(q=>qs.push({type:t.gt,d:q}));
+  }else if(t.gt==='reflection'){
+    (src.qs||[]).forEach(q=>qs.push({type:'reflection',d:{...q,rtype:src.type||t.data.type}}));
+  }
+  return qs;
+}
+
+/* ── AI-powered startTopic (replaces the simple one) ── */
+async function startTopic(i){
+  lastTopicIdx=i;
+  const t=TOPICS[i];G.topic=t;
+  G.score=0;G.lives=3;G.combo=0;G.bestCombo=0;G.correct=0;G.total=0;G.fastestTime=999;G.qIdx=0;
+
+  if(AI_MODE){
+    // Show AI loading screen
+    _rawShowScr('ai-loading');
+    document.getElementById('ai-loading-title').textContent=`Generating ${t.n} questions...`;
+    document.getElementById('ai-loading-sub').textContent=`Model: ${GEMINI_MODELS[_modelIdx]} · crafting ${t.tag} questions…`;
+    let data=null;
+    try{
+      data=await generateQuestions(t);
+      t._aiData=data;
+      buildHome(); // refresh topic cards to show 🤖 AI badge
+    }catch(err){
+      console.warn('AI failed, using fallback:',err.message);
+      const sub=document.getElementById('ai-loading-sub');
+      const title=document.getElementById('ai-loading-title');
+      // Extract wait time from rate limit message
+      const waitMatch=err.message.match(/retry in (\d+)/i)||err.message.match(/(\d+)\s*s/i);
+      if(waitMatch&&sub){
+        let secs=Math.min(parseInt(waitMatch[1])+2,35);
+        if(title)title.textContent='Rate limited — switching to built-in questions';
+        const cd=setInterval(()=>{secs--;if(sub)sub.textContent=`Starting in ${secs}s…`;if(secs<=0)clearInterval(cd);},1000);
+        await new Promise(r=>setTimeout(r,secs*1000));
+      }else{
+        if(sub)sub.textContent=`⚠️ AI unavailable — using built-in questions`;
+        if(title)title.textContent='Falling back to built-in questions';
+        await new Promise(r=>setTimeout(r,1400));
+      }
+    }
+    G.qs=buildQueueFromData(t,data);
+  }else{
+    // Static mode — build directly
+    G.qs=buildQueueFromData(t,null);
+  }
+
+  if(!G.qs||G.qs.length===0)G.qs=buildQueueFromData(t,null);
+
+  updateHUD();
+  _rawShowScr('gs');
+  // Add regen button
+  if(AI_MODE){
+    setTimeout(()=>{
+      const hud=document.querySelector('.hud');
+      if(hud&&!document.getElementById('regen-btn')){
+        const btn=document.createElement('button');btn.className='regen-btn';btn.id='regen-btn';
+        btn.innerHTML='🔄 New Qs';btn.title='Generate fresh AI questions';
+        btn.onclick=async()=>{
+          if(!G.topic)return;
+          delete AI_CACHE[G.topic.id];delete G.topic._aiData;
+          btn.innerHTML='⏳';btn.disabled=true;
+          try{const d=await generateQuestions(G.topic);if(d)G.topic._aiData=d;G.qs=buildQueueFromData(G.topic,G.topic._aiData);}
+          catch(e){console.warn('Regen failed:',e);}
+          btn.innerHTML='🔄 New Qs';btn.disabled=false;
+          G.qIdx=0;G.score=0;G.lives=3;G.combo=0;G.correct=0;G.total=0;
+          updateHUD();document.querySelectorAll('.hrt').forEach(h=>h.classList.remove('dead'));
+          loadQ();
+        };
+        hud.appendChild(btn);
+      }
+    },100);
+  }
+  loadQ();
+}
+
+/* ── Override goHome to use _navToHome ── */
+/* ══ SCORE PERSISTENCE ══ */
+function saveProgress(){
+  try{localStorage.setItem('mq_progress',JSON.stringify({topScore:G.topScore,level:G.level,xp:G.xp,streak:G.streak}));}catch(e){}
+}
+function loadProgress(){
+  try{const p=JSON.parse(localStorage.getItem('mq_progress')||'{}');G.topScore=p.topScore||0;G.level=p.level||1;G.xp=p.xp||0;G.streak=p.streak||0;}catch(e){}
+}
+
+/* ══ NAVIGATION ══ */
+function enterStudentView(){
+  loadProgress();
+  $('hBest').textContent=G.topScore;$('hLv').textContent=G.level;$('hStreak').textContent=G.streak;
+  buildHome();
+  showScr('student-screen');
+  switchStudentTab('practice');
+  // Refresh exam tab if exam exists
+  if(_examConfig||localStorage.getItem('mq_exam_config'))renderExamStudentView();
+  // Show AI badge in grid lbl
+  if(AI_MODE){const l=$('grid-lbl');if(l)l.innerHTML='Tap a topic to practise &nbsp;&middot;&nbsp; <span style="background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:2px 9px;font-size:.65rem;font-weight:800;color:#C084FC;">&#129302; AI On</span>';}
+}
+
+function enterTeacherView(){
+  showScr('teacher-screen');
+  buildTeacherPanel();
+  // Show AI badge in header
+  const ab=$('teacher-ai-badge');
+  if(ab)ab.style.display=AI_MODE?'block':'none';
+}
+
+function switchStudentTab(tab){
+  const pr=$('stab-practice-content'),ex=$('stab-exam-content');
+  const bpr=$('stab-practice'),bex=$('stab-exam');
+  const active='background:rgba(124,58,237,.15);border:none;border-bottom:2px solid #7C3AED;color:#C084FC;';
+  const inactive='background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);';
+  if(tab==='practice'){
+    if(pr)pr.style.display='flex';if(ex)ex.style.display='none';
+    if(bpr)bpr.style.cssText+=active;if(bex)bex.style.cssText+=inactive;
+  }else{
+    if(pr)pr.style.display='none';if(ex)ex.style.display='flex';
+    if(bpr)bpr.style.cssText+=inactive;if(bex)bex.style.cssText+=active;
+    renderExamStudentView();
+  }
+}
+
+function goHome(){
+  clearTimer();
+  if(_examState){clearInterval(_examState.totalTimerInt);clearInterval(_examState.qTimerInt);}
+  saveProgress();
+  showScr('home');
+}
+
+/* ── Teacher Panel ── */
+function buildTeacherPanel(){
+  const list=$('teacher-topic-list');if(!list)return;
+  const cfg=_examConfig||{};
+  list.innerHTML=TOPICS.map(t=>{
+    const saved=cfg.sections&&cfg.sections.find(s=>s.id===t.id);
+    const checked=!!saved;
+    const qcount=saved?saved.qCount:2;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);" id="row_${t.id}">
+      <input type="checkbox" id="tc_${t.id}" ${checked?'checked':''} onchange="updateTotals()"
+        style="width:16px;height:16px;accent-color:#7C3AED;cursor:pointer;flex-shrink:0;">
+      <span style="font-size:1rem;flex-shrink:0;">${t.icon}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.n}</div>
+        <div style="font-size:.6rem;color:var(--muted);">${t.tag}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+        <span style="font-size:.65rem;color:var(--muted);">Qs:</span>
+        <button onclick="adjQ('${t.id}',-1)" style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
+        <span id="qc_${t.id}" style="font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:var(--purple2);min-width:18px;text-align:center;">${qcount}</span>
+        <button onclick="adjQ('${t.id}',1)" style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  updateTotals();
+}
+
+function adjQ(topicId,delta){
+  const el=$('qc_'+topicId);if(!el)return;
+  let v=Math.max(1,Math.min(10,parseInt(el.textContent)+delta));
+  el.textContent=v;
+  // auto-check the topic if incrementing
+  if(delta>0){const cb=$('tc_'+topicId);if(cb)cb.checked=true;}
+  updateTotals();
+}
+
+function updateTotals(){
+  const marks=parseInt($('marks-per-q')?.value||2);
+  let totalQ=0;
+  TOPICS.forEach(t=>{
+    const cb=$('tc_'+t.id);
+    if(cb&&cb.checked){
+      const qc=$('qc_'+t.id);
+      totalQ+=(qc?parseInt(qc.textContent):2);
+    }
+  });
+  const tq=$('total-q-count');if(tq)tq.textContent=totalQ;
+  const tm=$('total-marks-count');if(tm)tm.textContent=totalQ*marks;
+}
+
+function teacherSelectAll(){TOPICS.forEach(t=>{const cb=$('tc_'+t.id);if(cb)cb.checked=true;});updateTotals();}
+function teacherClearAll(){TOPICS.forEach(t=>{const cb=$('tc_'+t.id);if(cb)cb.checked=false;});updateTotals();}
+
+function saveExam(){
+  const sections=TOPICS.filter(t=>{const cb=$('tc_'+t.id);return cb&&cb.checked;})
+    .map(t=>({id:t.id,qCount:parseInt($('qc_'+t.id)?.textContent||2)}));
+  const st=$('exam-saved-status');
+  if(sections.length===0){
+    if(st){st.style.display='block';st.style.background='rgba(239,68,68,.1)';st.style.borderColor='rgba(239,68,68,.3)';st.innerHTML='<div style="font-size:.95rem;font-weight:800;color:#EF4444;">⚠️ Please tick at least one topic section!</div>';setTimeout(()=>{st.style.display='none';st.style.background='rgba(16,185,129,.08)';st.style.borderColor='rgba(16,185,129,.3)';},3000);}
+    return;
+  }
+  const marks=parseInt($('marks-per-q')?.value||2);
+  _examConfig={
+    name:$('exam-name')?.value||'Class 7 Mental Ability Test',
+    totalTimer:parseInt($('exam-timer')?.value||0)*60,
+    qTimer:parseInt($('q-timer')?.value||45),
+    marksPerQ:marks,
+    allowHints:$('allow-hints')?.checked||false,
+    allowSkip:$('allow-skip')?.checked||false,
+    showAnswer:$('show-answer')?.checked!==false,
+    sections,
+    totalQ:sections.reduce((s,x)=>s+x.qCount,0),
+    totalMarks:sections.reduce((s,x)=>s+x.qCount,0)*marks,
+  };
+  localStorage.setItem('mq_exam_config',JSON.stringify(_examConfig));
+  sections.forEach(s=>{delete AI_CACHE[s.id];});
+  if(st){
+    st.style.display='block';st.style.background='rgba(16,185,129,.08)';st.style.borderColor='rgba(16,185,129,.3)';
+    const timerStr=_examConfig.totalTimer>0?` · ${_examConfig.totalTimer/60} min`:'';
+    st.innerHTML=`<div style="font-size:1rem;font-weight:800;color:var(--green);margin-bottom:.4rem;">✅ Exam Saved!</div>
+      <div style="font-size:.8rem;color:var(--muted);line-height:1.7;"><strong style="color:var(--text);">${_examConfig.name}</strong><br>${_examConfig.totalQ} questions · ${_examConfig.totalMarks} marks${timerStr}<br>${sections.length} section${sections.length>1?'s':''}: ${sections.map(s=>TOPICS.find(t=>t.id===s.id)?.icon||'').join(' ')}</div>
+      <div style="font-size:.75rem;color:var(--teal);margin-top:.5rem;font-weight:700;">📝 Students can now open the Exam tab →</div>`;
+    setTimeout(()=>{if(st)st.style.display='none';},5000);
+  }
+}
+
+/* ── Exam Student View ── */
+function renderExamStudentView(){
+  const cfg=_examConfig||JSON.parse(localStorage.getItem('mq_exam_config')||'null');
+  _examConfig=cfg;
+  const tb=$('exam-title-display'),mb=$('exam-meta-display'),sl=$('exam-summary-list'),btn=$('start-exam-btn');
+  if(!cfg){
+    if(tb)tb.textContent='No Exam Set';
+    if(mb)mb.textContent='Ask your teacher to create an exam first.';
+    if(sl)sl.style.display='none';
+    if(btn)btn.style.display='none';
+    return;
+  }
+  if(tb)tb.textContent=cfg.name;
+  const timerStr=cfg.totalTimer>0?`${cfg.totalTimer/60} min total · `:'';
+  const qTimerStr=cfg.qTimer>0?`${cfg.qTimer}s per question · `:'';
+  if(mb)mb.textContent=`${timerStr}${qTimerStr}${cfg.totalQ} questions · ${cfg.totalMarks} marks`;
+  if(sl){
+    sl.style.display='block';
+    sl.innerHTML=`<div style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Sections in this exam:</div>`+
+      cfg.sections.map(s=>{
+        const t=TOPICS.find(x=>x.id===s.id);
+        return t?`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:9px;margin-bottom:4px;font-size:.82rem;font-weight:700;">
+          <span>${t.icon}</span><span style="flex:1;">${t.n}</span>
+          <span style="color:var(--teal);font-family:'Orbitron',sans-serif;font-size:.72rem;">${s.qCount}Q</span>
+          <span style="color:var(--gold);font-size:.68rem;">${s.qCount*cfg.marksPerQ}M</span>
+        </div>`:''}).join('');
+  }
+  if(btn)btn.style.display='block';
+}
+
+/* ── Start Exam ── */
+async function startExam(){
+  const cfg=_examConfig;if(!cfg)return;
+  const btn=$('start-exam-btn');
+
+  // Show full loading overlay
+  const box=$('exam-ready-box');
+  if(box){
+    box.innerHTML=`
+      <div style="font-size:2.2rem;margin-bottom:.8rem;animation:spin 1.5s linear infinite;display:inline-block;">⚙️</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--teal);margin-bottom:.5rem;">Preparing Exam...</div>
+      <div id="exam-gen-status" style="font-size:.82rem;color:var(--muted);margin-bottom:1rem;">Setting up questions</div>
+      <div style="width:100%;max-width:320px;margin:0 auto;">
+        <div style="height:6px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;">
+          <div id="exam-gen-bar" style="height:100%;background:linear-gradient(90deg,#06B6D4,#7C3AED);width:0%;transition:width .4s;border-radius:4px;"></div>
+        </div>
+        <div id="exam-gen-sections" style="margin-top:.8rem;display:flex;flex-direction:column;gap:5px;text-align:left;"></div>
+      </div>`;
+  }
+
+  const setGenStatus=(msg)=>{const el=$('exam-gen-status');if(el)el.textContent=msg;};
+  const setGenBar=(pct)=>{const el=$('exam-gen-bar');if(el)el.style.width=pct+'%';};
+  const setSectionStatus=(topicId,icon,name,status)=>{
+    const cont=$('exam-gen-sections');if(!cont)return;
+    let row=$('genrow_'+topicId);
+    if(!row){row=document.createElement('div');row.id='genrow_'+topicId;row.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;background:rgba(255,255,255,.04);font-size:.78rem;font-weight:700;';cont.appendChild(row);}
+    const colors={waiting:'var(--muted)',loading:'var(--gold)',done:'#10B981',fallback:'var(--teal)',error:'#EF4444'};
+    const icons={waiting:'⏳',loading:'🤖',done:'✅',fallback:'📚',error:'⚠️'};
+    row.innerHTML=`<span>${icon}</span><span style="flex:1;">${name}</span><span style="color:${colors[status]||'var(--muted)'}">${icons[status]||''} ${status==='loading'?'Generating...':status==='done'?'AI ready':status==='fallback'?'Built-in':status==='error'?'Failed':'Waiting'}</span>`;
+  };
+
+  const allQs=[];
+  const total=cfg.sections.length;
+
+  // Mark all as waiting first
+  cfg.sections.forEach(sec=>{
+    const topic=TOPICS.find(t=>t.id===sec.id);if(!topic)return;
+    setSectionStatus(sec.id,topic.icon,topic.n,'waiting');
+  });
+
+  for(let si=0;si<cfg.sections.length;si++){
+    const sec=cfg.sections[si];
+    const topic=TOPICS.find(t=>t.id===sec.id);if(!topic)continue;
+
+    setGenStatus(`Section ${si+1} of ${total}: ${topic.n}`);
+    setGenBar(Math.round((si/total)*100));
+    setSectionStatus(sec.id,topic.icon,topic.n,'loading');
+
+    let data=topic.data;
+    let usedAI=false;
+
+    if(AI_MODE){
+      try{
+        const ai=await generateQuestions(topic);
+        if(ai&&(ai.qs?.length>0||ai.pairs?.length>0||ai.cats)){
+          data=ai;usedAI=true;
+          setSectionStatus(sec.id,topic.icon,topic.n,'done');
+        }else{
+          setSectionStatus(sec.id,topic.icon,topic.n,'fallback');
+        }
+      }catch(e){
+        console.warn('AI failed for',sec.id,e.message);
+        setSectionStatus(sec.id,topic.icon,topic.n,'fallback');
+      }
+      // Small delay between sections to avoid hitting rate limits
+      if(si<cfg.sections.length-1)await new Promise(r=>setTimeout(r,800));
+    }else{
+      setSectionStatus(sec.id,topic.icon,topic.n,'fallback');
+    }
+
+    const queue=buildQueueFromData(topic,data);
+    const src=queue&&queue.length>0?queue:buildQueueFromData(topic,topic.data);
+    for(let i=0;i<sec.qCount;i++){
+      allQs.push({...src[i%Math.max(1,src.length)],topicId:sec.id,topicName:topic.n,topicIcon:topic.icon,isAI:usedAI});
+    }
+  }
+
+  setGenBar(100);
+  setGenStatus('✅ All sections ready! Starting exam...');
+  await new Promise(r=>setTimeout(r,700));
+
+  if(allQs.length===0){
+    if(box)renderExamStudentView();
+    return;
+  }
+
+  _examState={config:cfg,qs:shuf(allQs),qIdx:0,marksScored:0,results:[],startTime:Date.now(),totalTimerInt:null,qTimerInt:null,totalSecsLeft:cfg.totalTimer||0,examEnded:false};
+  _rawShowScr('exam-screen');
+  if(cfg.totalTimer>0)startExamTotalTimer();
+  loadExamQ();
+}
+
+function startExamTotalTimer(){
+  const el=$('exam-total-timer');if(el)el.style.display='flex';
+  const tick=()=>{
+    _examState.totalSecsLeft--;
+    const m=Math.floor(_examState.totalSecsLeft/60),s=_examState.totalSecsLeft%60;
+    const tv=$('exam-total-time-val');
+    if(tv)tv.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(_examState.totalSecsLeft<=60&&tv)tv.style.color='#EF4444';
+    if(_examState.totalSecsLeft<=0){clearInterval(_examState.totalTimerInt);finishExam('time-up');}
+  };
+  _examState.totalTimerInt=setInterval(tick,1000);
+}
+
+/* ── Load Exam Question ── */
+function loadExamQ(){
+  const es=_examState,cfg=es.config;
+  if(es.qIdx>=es.qs.length){finishExam('completed');return;}
+  clearInterval(es.qTimerInt);
+
+  const q=es.qs[es.qIdx];
+  const total=es.qs.length;
+  $('exam-q-counter').textContent=`Q ${es.qIdx+1}/${total}`;
+  $('exam-marks-display').textContent=`${es.marksScored} / ${cfg.totalMarks} marks`;
+  $('exam-progress-bar').style.width=`${(es.qIdx/total)*100}%`;
+
+  // Per-question timer ring
+  const rnum=$('exam-rnum'),rfill=$('exam-rfill');
+  if(cfg.qTimer>0){
+    let t=cfg.qTimer;
+    if(rnum)rnum.textContent=t;
+    if(rfill){rfill.style.strokeDashoffset='0';rfill.style.stroke='#06B6D4';}
+    es.qTimerInt=setInterval(()=>{
+      t--;
+      const circ=94;
+      if(rfill){rfill.style.strokeDashoffset=circ*(1-t/cfg.qTimer);rfill.style.stroke=t<=8?'#EF4444':t<=18?'#F59E0B':'#06B6D4';}
+      if(rnum)rnum.textContent=t;
+      if(t<=0){clearInterval(es.qTimerInt);examAnswered(null,'skipped');}
+    },1000);
+  }else{
+    if(rnum)rnum.textContent='∞';
+    if(rfill){rfill.style.strokeDashoffset='0';}
+  }
+
+  // Render question into exam-stage
+  const st=$('exam-stage');
+  st.style.animation='none';st.offsetHeight;st.style.animation='';
+
+  // Section label + AI/built-in indicator
+  const aiBadge=q.isAI
+    ?`<span style="background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(6,182,212,.2));border:1px solid rgba(124,58,237,.35);border-radius:8px;padding:2px 7px;font-size:.58rem;font-weight:800;color:#C084FC;">🤖 AI</span>`
+    :`<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:2px 7px;font-size:.58rem;font-weight:700;color:var(--muted);">📚 Built-in</span>`;
+  const secBadge=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;gap:6px;">
+    <span style="background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.25);border-radius:12px;padding:3px 10px;font-size:.62rem;font-weight:800;color:var(--teal);">${q.topicIcon} ${q.topicName}</span>
+    <div style="display:flex;align-items:center;gap:5px;">${aiBadge}<span style="font-size:.68rem;color:var(--muted);">${cfg.marksPerQ}M</span></div>
+  </div>`;
+
+  // Temporarily point stage to exam-stage for renderers
+  window._examMode=true;
+  window._examStageId='exam-stage';
+  G.topic=TOPICS.find(t=>t.id===q.topicId)||TOPICS[0];
+  G.qStart=Date.now();
+
+  renderExamQuestion(q,secBadge);
+}
+
+/* ── Render in exam context (reuse game renderers but target exam-stage) ── */
+function renderExamQuestion(q,badge){
+  const st=$('exam-stage');
+  // Temporarily override $ to point to exam-stage for injected badge
+  st.innerHTML='';
+  // Use the same game renderers — they write to #stage but we remap
+  // Simple approach: render to #stage then move innerHTML
+  const origStage=$('stage');
+  // Save/restore
+  const tmpId='_tmpstage';
+  const tmp=document.createElement('div');tmp.id=tmpId;tmp.style.display='none';document.body.appendChild(tmp);
+  if(origStage)origStage.id=tmpId;st.id='stage';
+
+  G.qIdx=0;G.qs=[q];G.total=0;
+  loadQInner(q);
+
+  // Move back
+  st.id='exam-stage';if(origStage)origStage.id='stage';
+  tmp.remove();
+
+  // Inject section badge at top
+  st.insertAdjacentHTML('afterbegin',badge);
+
+  // Hide hint/skip buttons if not allowed
+  if(!_examState.config.allowHints){const hb=st.querySelector('.btn-hint');if(hb)hb.style.display='none';}
+  if(!_examState.config.allowSkip){const sb=st.querySelector('.btn-skip');if(sb)sb.style.display='none';}
+
+  // Intercept all answer picks to route through examAnswered
+  interceptExamAnswers(st);
+}
+
+function loadQInner(q){
+  G.total++;G.qStart=Date.now();
+  switch(q.type){
+    case 'memory':renderMemory(q.d);break;
+    case 'sortbasket':renderSortBasket(q.d);break;
+    case 'conveyor':renderConveyor(q.d);break;
+    case 'cipher':renderCipher(q.d);break;
+    case 'familytree':renderFamilyTree(q.d);break;
+    case 'sortseq':renderSortSeq(q.d);break;
+    case 'maze':renderMaze(q.d);break;
+    case 'venn':renderVenn(q.d);break;
+    case 'scenario':renderScenario(q.d);break;
+    case 'scratch':renderScratch(q.d);break;
+    case 'dice3d':renderDice(q.d);break;
+    case 'pattern':renderPattern(q.d);break;
+    case 'mathops':renderMathOps(q.d);break;
+    case 'missingtile':renderMissingTile(q.d);break;
+    case 'reflection':renderReflection(q.d);break;
+  }
+}
+
+/* Intercept answer events in exam mode */
+function interceptExamAnswers(container){
+  // Patch skip button
+  const skip=container.querySelector('.btn-skip');
+  if(skip)skip.onclick=()=>examAnswered(null,'skipped');
+  // Answers are picked via pick* functions which call onCorrect/onWrong
+  // We intercept those via monkey-patching during exam
+}
+
+/* Called by onCorrect/onWrong during exam mode */
+let _origOnCorrect,_origOnWrong;
+function examAnswered(isCorrect,reason){
+  if(_examState.examEnded)return;
+  clearInterval(_examState.qTimerInt);
+  const q=_examState.qs[_examState.qIdx];
+  const cfg=_examState.config;
+  const marks=isCorrect?cfg.marksPerQ:0;
+  _examState.marksScored+=marks;
+  _examState.results.push({
+    topicId:q.topicId,topicName:q.topicName,topicIcon:q.topicIcon,
+    correct:isCorrect===true,skipped:reason==='skipped',marks
+  });
+  // Update HUD
+  $('exam-marks-display').textContent=`${_examState.marksScored} / ${cfg.totalMarks} marks`;
+  // Brief feedback then next
+  const delay=cfg.showAnswer?1600:600;
+  setTimeout(()=>{
+    _examState.qIdx++;
+    loadExamQ();
+  },delay);
+}
+
+function confirmExitExam(){
+  if(confirm('Exit exam? Your progress will be lost.')){
+    clearInterval(_examState?.totalTimerInt);
+    clearInterval(_examState?.qTimerInt);
+    _examState=null;
+    goHome();
+  }
+}
+
+function retryExam(){
+  _examState=null;
+  startExam();
+}
+
+/* ── Finish Exam ── */
+function finishExam(reason){
+  if(_examState.examEnded)return;
+  _examState.examEnded=true;
+  clearInterval(_examState.totalTimerInt);
+  clearInterval(_examState.qTimerInt);
+  const es=_examState,cfg=es.config;
+  const timeTaken=Math.round((Date.now()-es.startTime)/1000);
+  const correct=es.results.filter(r=>r.correct).length;
+  const wrong=es.results.filter(r=>!r.correct&&!r.skipped).length;
+  const skipped=es.results.filter(r=>r.skipped).length;
+  const pct=cfg.totalMarks>0?Math.round((es.marksScored/cfg.totalMarks)*100):0;
+
+  let grade='',gradeColor='';
+  if(pct>=90){grade='A+ Outstanding 🌟';gradeColor='#F59E0B';}
+  else if(pct>=75){grade='A Excellent 🥇';gradeColor='#10B981';}
+  else if(pct>=60){grade='B Good 🥈';gradeColor='#06B6D4';}
+  else if(pct>=40){grade='C Average 🥉';gradeColor='#A855F7';}
+  else{grade='D Needs Improvement 📖';gradeColor='#EF4444';}
+
+  $('er-exam-name').textContent=cfg.name+(reason==='time-up'?' (Time Up ⏱)':'');
+  $('er-score').textContent=`${es.marksScored}/${cfg.totalMarks}`;
+  $('er-pct').textContent=pct+'%';
+  $('er-correct').textContent=correct;
+  $('er-wrong').textContent=wrong;
+  $('er-skipped').textContent=skipped;
+  const m=Math.floor(timeTaken/60),s=timeTaken%60;
+  $('er-time-taken').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  $('er-grade').innerHTML=`<span style="color:${gradeColor}">${grade}</span>`;
+  $('er-trophy').textContent=pct>=75?'🏆':pct>=50?'🥈':'📖';
+
+  // Section-wise breakdown
+  const sectionMap={};
+  es.results.forEach(r=>{
+    if(!sectionMap[r.topicId])sectionMap[r.topicId]={name:r.topicName,icon:r.topicIcon,correct:0,total:0,marks:0};
+    sectionMap[r.topicId].total++;
+    if(r.correct){sectionMap[r.topicId].correct++;sectionMap[r.topicId].marks+=cfg.marksPerQ;}
+  });
+  $('er-section-breakdown').innerHTML=`<div style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">📊 Section-wise Score</div>`+
+    Object.values(sectionMap).map(s=>{
+      const spct=s.total>0?Math.round(s.correct/s.total*100):0;
+      const col=spct>=75?'#10B981':spct>=50?'#F59E0B':'#EF4444';
+      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,255,255,.04);border-radius:9px;margin-bottom:4px;">
+        <span>${s.icon}</span>
+        <div style="flex:1;font-size:.8rem;font-weight:700;">${s.name}</div>
+        <div style="font-size:.75rem;color:${col};font-weight:800;">${s.correct}/${s.total}</div>
+        <div style="width:60px;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;background:${col};width:${spct}%;border-radius:4px;"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+  // Question review list
+  $('er-review').innerHTML=es.results.map((r,i)=>{
+    const icon=r.skipped?'⏭':'correct' in r&&r.correct?'✅':'❌';
+    const col=r.skipped?'var(--muted)':r.correct?'#10B981':'#EF4444';
+    return`<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:rgba(255,255,255,.03);border-radius:8px;font-size:.78rem;">
+      <span>${icon}</span>
+      <span style="flex:1;color:${col};font-weight:700;">Q${i+1} · ${r.topicIcon} ${r.topicName}</span>
+      <span style="font-family:'Orbitron',sans-serif;font-size:.7rem;color:${col};">${r.marks}/${cfg.marksPerQ}M</span>
+    </div>`;
+  }).join('');
+
+  showScr('exam-results');
+  for(let i=0;i<20;i++)setTimeout(()=>spawnParticles(pct>=60?['🎉','⭐','✨','🏆'][i%4]:'📖',Math.random()*innerWidth,Math.random()*120),i*70);
+}
+
+/* ── Patch onCorrect/onWrong to route through examAnswered in exam mode ── */
+const _gameOnCorrect=onCorrect,_gameOnWrong=onWrong;
+function onCorrect(elapsed,noTimer){
+  if(_examState&&!_examState.examEnded){examAnswered(true,'correct');return;}
+  _gameOnCorrect.call(this,elapsed,noTimer);
+}
+function onWrong(){
+  if(_examState&&!_examState.examEnded){examAnswered(false,'wrong');return;}
+  _gameOnWrong.call(this);
+}
+
+function goHome(){
+  clearTimer();
+  if(_examState){clearInterval(_examState.totalTimerInt);clearInterval(_examState.qTimerInt);}
+  saveProgress();
+  $('hBest').textContent=G.topScore;$('hLv').textContent=G.level;$('hStreak').textContent=G.streak;
+  _navToHome();
+}
+
+/* ── Override showScr to keep regen btn behaviour ── */
+function showScr(id){
+  _rawShowScr(id);
+  if(id==='home'){const rb=document.getElementById('regen-btn');if(rb)rb.remove();}
+}
+
+/* ── App init ── */
+window.addEventListener('load',()=>{
+  loadProgress();
+  try{const ec=localStorage.getItem('mq_exam_config');if(ec)_examConfig=JSON.parse(ec);}catch(e){}
+  // No API key needed — Gemini key is configured on the server (Vercel env var)
+  AI_MODE=true;
+  _modelsDiscovered=false;
+  discoverModels(); // discover available models via /api/models
+  _rawShowScr('home');
+});
+
+</script>
+
+<!-- ══ AI LOADING SCREEN ══ -->
+<div class="scr" id="ai-loading" style="align-items:center;justify-content:center;">
+  <div style="text-align:center;padding:2rem;">
+    <div id="ai-loader-anim" style="width:80px;height:80px;margin:0 auto 1.5rem;position:relative;">
+      <svg width="80" height="80" viewBox="0 0 80 80" style="animation:spin 2s linear infinite;">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(124,58,237,.2)" stroke-width="4"/>
+        <circle cx="40" cy="40" r="34" fill="none" stroke="url(#aiGrad)" stroke-width="4" stroke-linecap="round" stroke-dasharray="60 154"/>
+        <defs><linearGradient id="aiGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#C084FC"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🤖</div>
+    </div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--glow);margin-bottom:.5rem;" id="ai-loading-title">Generating questions...</div>
+    <div style="font-size:.82rem;color:var(--muted);max-width:300px;margin:0 auto;" id="ai-loading-sub">Gemini AI is crafting unique questions for you</div>
+    <div style="margin-top:1.5rem;display:flex;gap:6px;justify-content:center;" id="ai-dots">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--purple);animation:dotPulse 1.2s ease-in-out infinite;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--teal);animation:dotPulse 1.2s ease-in-out .2s infinite;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);animation:dotPulse 1.2s ease-in-out .4s infinite;"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes dotPulse{0%,100%{transform:scale(1);opacity:.5;}50%{transform:scale(1.4);opacity:1;}}
+#api-key-input::placeholder{color:rgba(255,255,255,.2);}
+.ai-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(6,182,212,.2));border:1px solid rgba(124,58,237,.4);border-radius:20px;padding:3px 10px;font-size:.65rem;font-weight:800;color:#C084FC;}
+.regen-btn{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.35);color:#C084FC;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.regen-btn:hover{background:rgba(124,58,237,.3);}
+</style>
+</body></html>
