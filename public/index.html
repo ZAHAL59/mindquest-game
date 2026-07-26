@@ -1804,9 +1804,38 @@ function enterStudentView(){
 function enterTeacherView(){
   showScr('teacher-screen');
   buildTeacherPanel();
-  // Show AI badge in header
   const ab=$('teacher-ai-badge');
   if(ab)ab.style.display=AI_MODE?'block':'none';
+
+  // If an exam was already saved (even from a previous session), restore the preview panel
+  const cfg=_examConfig||JSON.parse(localStorage.getItem('mq_exam_config')||'null');
+  if(cfg){
+    _examConfig=cfg;
+    // Restore exam settings into the form
+    const en=$('exam-name');if(en)en.value=cfg.name||'';
+    const et=$('exam-timer');if(et)et.value=String(cfg.totalTimer?cfg.totalTimer/60:0);
+    const qt=$('q-timer');if(qt)qt.value=String(cfg.qTimer||45);
+    const mq=$('marks-per-q');if(mq)mq.value=String(cfg.marksPerQ||2);
+    const ah=$('allow-hints');if(ah)ah.checked=!!cfg.allowHints;
+    const as=$('allow-skip');if(as)as.checked=!!cfg.allowSkip;
+    const sa=$('show-answer');if(sa)sa.checked=cfg.showAnswer!==false;
+    // Show the preview panel with a prompt to generate/re-generate
+    const pp=$('preview-panel');
+    if(pp){
+      pp.style.display='block';
+      const st=$('exam-saved-status');
+      if(st&&st.style.display==='none'){
+        // Show a subtle reminder that exam exists
+        st.style.display='block';
+        st.style.background='rgba(124,58,237,.08)';
+        st.style.borderColor='rgba(124,58,237,.25)';
+        st.innerHTML=`<div style="font-size:.85rem;font-weight:700;color:#C084FC;">📋 Existing exam loaded: <strong>${cfg.name}</strong> · ${cfg.totalQ} questions</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Edit settings above and Save Exam to update, or Generate Preview below.</div>`;
+      }
+    }
+    // Reset preview state so generate button works fresh
+    _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
+  }
 }
 
 function switchStudentTab(tab){
@@ -1906,6 +1935,8 @@ function saveExam(){
     totalMarks:sections.reduce((s,x)=>s+x.qCount,0)*marks,
   };
   localStorage.setItem('mq_exam_config',JSON.stringify(_examConfig));
+  // Clear ALL AI cache — ensures Generate Preview always produces fresh unique questions
+  AI_CACHE = {};
   sections.forEach(s=>{delete AI_CACHE[s.id];});
   // Reset preview state
   _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
@@ -1929,7 +1960,9 @@ async function generatePreview(){
   if(!_examConfig)return;
   const btn=$('gen-preview-btn'),st=$('preview-gen-status');
   if(btn){btn.disabled=true;btn.textContent='⏳ Generating...';}
-  if(st){st.style.display='block';st.textContent='Fetching questions from AI...';}
+  if(st){st.style.display='block';st.textContent='Fetching fresh questions from AI...';}
+  // Clear cache so every generation is completely fresh
+  AI_CACHE={};
   _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
 
   for(let si=0;si<_examConfig.sections.length;si++){
