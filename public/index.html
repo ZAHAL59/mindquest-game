@@ -1807,7 +1807,22 @@ function enterTeacherView(){
   const ab=$('teacher-ai-badge');
   if(ab)ab.style.display=AI_MODE?'block':'none';
 
-  // If an exam was already saved (even from a previous session), restore the preview panel
+  // Always reset the preview panel to clean state on entry
+  const pp=$('preview-panel');
+  if(pp){
+    pp.style.display='none'; // hide until Save Exam is clicked
+    const card=$('preview-card');
+    if(card)card.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:1rem;">Click "Generate & Preview All Questions" to load questions</div>';
+    const counter=$('preview-counter');if(counter)counter.textContent='0 / 0';
+    const dots=$('preview-dots');if(dots)dots.innerHTML='';
+    const genSt=$('preview-gen-status');if(genSt){genSt.style.display='none';genSt.textContent='';}
+    const ac=$('approved-count');if(ac)ac.textContent='';
+    const cb=$('confirm-exam-btn');if(cb)cb.style.display='none';
+    const gb=$('gen-preview-btn');if(gb){gb.disabled=false;gb.innerHTML='🤖 Generate &amp; Preview All Questions';}
+  }
+  _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
+
+  // If an exam was already saved, show a notice and reveal the preview panel
   const cfg=_examConfig||JSON.parse(localStorage.getItem('mq_exam_config')||'null');
   if(cfg){
     _examConfig=cfg;
@@ -1817,24 +1832,19 @@ function enterTeacherView(){
     const qt=$('q-timer');if(qt)qt.value=String(cfg.qTimer||45);
     const mq=$('marks-per-q');if(mq)mq.value=String(cfg.marksPerQ||2);
     const ah=$('allow-hints');if(ah)ah.checked=!!cfg.allowHints;
-    const as=$('allow-skip');if(as)as.checked=!!cfg.allowSkip;
+    const as_=$('allow-skip');if(as_)as_.checked=!!cfg.allowSkip;
     const sa=$('show-answer');if(sa)sa.checked=cfg.showAnswer!==false;
-    // Show the preview panel with a prompt to generate/re-generate
-    const pp=$('preview-panel');
-    if(pp){
-      pp.style.display='block';
-      const st=$('exam-saved-status');
-      if(st&&st.style.display==='none'){
-        // Show a subtle reminder that exam exists
-        st.style.display='block';
-        st.style.background='rgba(124,58,237,.08)';
-        st.style.borderColor='rgba(124,58,237,.25)';
-        st.innerHTML=`<div style="font-size:.85rem;font-weight:700;color:#C084FC;">📋 Existing exam loaded: <strong>${cfg.name}</strong> · ${cfg.totalQ} questions</div>
-          <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Edit settings above and Save Exam to update, or Generate Preview below.</div>`;
-      }
+    // Show the saved status notice
+    const st=$('exam-saved-status');
+    if(st){
+      st.style.display='block';
+      st.style.background='rgba(124,58,237,.08)';
+      st.style.borderColor='rgba(124,58,237,.25)';
+      st.innerHTML=`<div style="font-size:.85rem;font-weight:700;color:#C084FC;">📋 Existing exam: <strong>${cfg.name}</strong> · ${cfg.totalQ} questions</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Edit above and Save Exam to update, or use Generate & Preview below.</div>`;
     }
-    // Reset preview state so generate button works fresh
-    _preview={qs:[],idx:0,approved:new Set(),removed:new Set()};
+    // Show preview panel (clean)
+    if(pp)pp.style.display='block';
   }
 }
 
