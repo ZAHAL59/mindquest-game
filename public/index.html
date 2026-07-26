@@ -1953,15 +1953,17 @@ function saveExam(){
   if(pp){
     pp.style.display='block';
     const card=$('preview-card');
-    if(card)card.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;">Click "Generate & Preview All Questions" to load questions</div>';
+    if(card)card.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:1rem;">⏳ Generating questions...</div>';
     const counter=$('preview-counter');if(counter)counter.textContent='0 / 0';
     const dots=$('preview-dots');if(dots)dots.innerHTML='';
-    const genSt=$('preview-gen-status');if(genSt){genSt.style.display='none';genSt.textContent='';}
+    const genSt=$('preview-gen-status');if(genSt){genSt.style.display='block';genSt.textContent='Preparing AI questions for preview...';}
     const ac=$('approved-count');if(ac)ac.textContent='';
     const cb=$('confirm-exam-btn');if(cb)cb.style.display='none';
     const gb=$('gen-preview-btn');if(gb){gb.disabled=false;gb.innerHTML='🤖 Generate &amp; Preview All Questions';}
     setTimeout(()=>pp.scrollIntoView({behavior:'smooth',block:'nearest'}),400);
   }
+  // AUTO-GENERATE: start generating immediately so teacher sees questions right away
+  setTimeout(()=>generatePreview(), 500);
 }
 
 /* ══ QUESTION PREVIEW SYSTEM ══ */
@@ -2183,7 +2185,28 @@ function renderExamStudentView(){
           <span style="color:var(--gold);font-size:.68rem;">${s.qCount*cfg.marksPerQ}M</span>
         </div>`:''}).join('');
   }
-  if(btn)btn.style.display='block';
+  // Only show Start Exam if teacher has confirmed/published the questions
+  if(cfg._previewedQs&&cfg._previewedQs.length>0){
+    if(btn){
+      btn.style.display='block';
+      btn.textContent='🚀 Start Exam';
+      btn.disabled=false;
+    }
+  }else{
+    // Exam saved but not yet confirmed by teacher
+    if(btn)btn.style.display='none';
+    const box=$('exam-ready-box');
+    if(box){
+      const pending=box.querySelector('#pending-notice');
+      if(!pending){
+        const div=document.createElement('div');
+        div.id='pending-notice';
+        div.style.cssText='margin-top:.8rem;padding:10px 14px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;font-size:.8rem;color:var(--gold);font-weight:700;text-align:center;';
+        div.textContent='⏳ Exam is being prepared by your teacher. Please wait...';
+        box.appendChild(div);
+      }
+    }
+  }
 }
 
 /* ── Start Exam ── */
