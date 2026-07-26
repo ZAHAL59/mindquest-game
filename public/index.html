@@ -1392,13 +1392,13 @@ async function discoverModels() {
   }
 }
 
-async function callGemini(prompt, isTest=false) {
+async function callGemini(prompt, isTest=false, temperature=0.9) {
   if (!_modelsDiscovered) await discoverModels();
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: 1.2,  // higher = more varied output each generation
+      temperature: isTest ? 0.5 : temperature,
       maxOutputTokens: isTest ? 30 : 4096
     }
   };
@@ -1519,9 +1519,26 @@ function parseGeminiJSON(text) {
 }
 
 /* ── Generate questions for a topic ── */
-async function generateQuestions(topic, forceRefresh=false) {
+async function generateQuestions(topic, forceRefresh=false, creativity='balanced') {
   const cacheKey = topic.id;
   if (!forceRefresh && AI_CACHE[cacheKey]) return AI_CACHE[cacheKey];
+
+  // Creativity settings
+  const creativityConfig = {
+    strict: {
+      temperature: 0.4,
+      instruction: 'Use straightforward, factually precise questions. Follow the format exactly. Avoid unusual or trick scenarios. Prioritise clarity and correctness over novelty.',
+    },
+    balanced: {
+      temperature: 0.9,
+      instruction: 'Mix familiar and slightly novel scenarios. Keep questions clear but varied. Moderate creativity — avoid being too predictable or too unusual.',
+    },
+    creative: {
+      temperature: 1.3,
+      instruction: 'Be imaginative and varied. Use surprising contexts, interesting characters, and fresh scenarios. Keep questions understandable for Class 7 students but make them engaging and different from typical textbook examples.',
+    },
+  };
+  const cc = creativityConfig[creativity] || creativityConfig.balanced;
 
   let schema = '';
   let topicHint = topic.n;
@@ -1582,10 +1599,11 @@ Variety seed: ${seed} — use this to ensure completely different questions from
 Theme to focus on: ${theme}.
 Use these Indian names if needed: ${nameSet}.
 Difficulty: ${difficulty}.
+Style instruction: ${cc.instruction}
 ${schema}
 Rules: age-appropriate, factually correct, completely different from typical examples. Return ONLY valid JSON.`;
 
-  const result = await callGemini(fullPrompt);
+  const result = await callGemini(fullPrompt, false, cc.temperature);
 
   // Transform result into the format our game expects
   const transformed = transformAIResult(topic, result);
@@ -1874,23 +1892,42 @@ function goHome(){
 function buildTeacherPanel(){
   const list=$('teacher-topic-list');if(!list)return;
   const cfg=_examConfig||{};
+
+  // Default creativity per game type — strict for logic/factual, creative for open-ended
+  const defaultCreativity={
+    memory:'balanced', sortbasket:'balanced', conveyor:'strict',
+    cipher:'strict', familytree:'strict', sortseq:'balanced',
+    maze:'strict', venn:'balanced', scenario:'creative',
+    scratch:'balanced', dice3d:'strict', pattern:'strict',
+    mathops:'strict', missingtile:'strict', reflection:'strict',
+  };
+
   list.innerHTML=TOPICS.map(t=>{
     const saved=cfg.sections&&cfg.sections.find(s=>s.id===t.id);
     const checked=!!saved;
     const qcount=saved?saved.qCount:2;
-    return`<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);" id="row_${t.id}">
+    const creativity=saved?.creativity||defaultCreativity[t.gt]||'balanced';
+    return`<div style="display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);flex-wrap:wrap;" id="row_${t.id}">
       <input type="checkbox" id="tc_${t.id}" ${checked?'checked':''} onchange="updateTotals()"
         style="width:16px;height:16px;accent-color:#7C3AED;cursor:pointer;flex-shrink:0;">
       <span style="font-size:1rem;flex-shrink:0;">${t.icon}</span>
-      <div style="flex:1;min-width:0;">
+      <div style="flex:1;min-width:80px;">
         <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.n}</div>
         <div style="font-size:.6rem;color:var(--muted);">${t.tag}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-        <span style="font-size:.65rem;color:var(--muted);">Qs:</span>
-        <button onclick="adjQ('${t.id}',-1)" style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
+      <!-- Creativity selector -->
+      <select id="cr_${t.id}" title="Creativity level for AI questions"
+        style="padding:4px 6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:700;outline:none;cursor:pointer;flex-shrink:0;">
+        <option value="strict" ${creativity==='strict'?'selected':''} title="Factual, precise">🎯 Strict</option>
+        <option value="balanced" ${creativity==='balanced'?'selected':''} title="Mix of both">⚖️ Balanced</option>
+        <option value="creative" ${creativity==='creative'?'selected':''} title="Imaginative, varied">🎨 Creative</option>
+      </select>
+      <!-- Q count -->
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <span style="font-size:.62rem;color:var(--muted);">Qs:</span>
+        <button onclick="adjQ('${t.id}',-1)" style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="qc_${t.id}" style="font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:var(--purple2);min-width:18px;text-align:center;">${qcount}</span>
-        <button onclick="adjQ('${t.id}',1)" style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+        <button onclick="adjQ('${t.id}',1)" style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>`;
   }).join('');
@@ -1925,7 +1962,11 @@ function teacherClearAll(){TOPICS.forEach(t=>{const cb=$('tc_'+t.id);if(cb)cb.ch
 
 function saveExam(){
   const sections=TOPICS.filter(t=>{const cb=$('tc_'+t.id);return cb&&cb.checked;})
-    .map(t=>({id:t.id,qCount:parseInt($('qc_'+t.id)?.textContent||2)}));
+    .map(t=>({
+      id:t.id,
+      qCount:parseInt($('qc_'+t.id)?.textContent||2),
+      creativity:$('cr_'+t.id)?.value||'balanced'
+    }));
   const st=$('exam-saved-status');
   if(sections.length===0){
     if(st){st.style.display='block';st.style.background='rgba(239,68,68,.1)';st.style.borderColor='rgba(239,68,68,.3)';st.innerHTML='<div style="font-size:.95rem;font-weight:800;color:#EF4444;">⚠️ Please tick at least one topic section!</div>';setTimeout(()=>{st.style.display='none';st.style.background='rgba(16,185,129,.08)';st.style.borderColor='rgba(16,185,129,.3)';},3000);}
@@ -1990,11 +2031,12 @@ async function generatePreview(){
   for(let si=0;si<_examConfig.sections.length;si++){
     const sec=_examConfig.sections[si];
     const topic=TOPICS.find(t=>t.id===sec.id);if(!topic)continue;
+    const creativity=sec.creativity||'balanced';
     if(st)st.textContent=`Section ${si+1}/${_examConfig.sections.length}: ${topic.n}...`;
     let data=topic.data;
     let isAI=false;
     try{
-      const ai=await generateQuestions(topic, true); // forceRefresh — always fresh in preview
+      const ai=await generateQuestions(topic, true, creativity); // forceRefresh + creativity level
       if(ai&&(ai.qs?.length>0||ai.pairs?.length>0||ai.cats)){data=ai;isAI=true;}
     }catch(e){console.warn('Preview AI failed for',sec.id);}
     const queue=buildQueueFromData(topic,data);
