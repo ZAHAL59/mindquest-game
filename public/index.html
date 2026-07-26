@@ -1948,10 +1948,20 @@ function saveExam(){
       ${_examConfig.totalQ} questions · ${_examConfig.totalMarks} marks${timerStr}</div>`;
     setTimeout(()=>{if(st)st.style.display='none';},4000);
   }
-  // Show the preview panel
-  const pp=$('preview-panel');if(pp)pp.style.display='block';
-  // Scroll to it
-  setTimeout(()=>pp?.scrollIntoView({behavior:'smooth',block:'nearest'}),300);
+  // Show the preview panel — fully reset to initial state
+  const pp=$('preview-panel');
+  if(pp){
+    pp.style.display='block';
+    const card=$('preview-card');
+    if(card)card.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;">Click "Generate & Preview All Questions" to load questions</div>';
+    const counter=$('preview-counter');if(counter)counter.textContent='0 / 0';
+    const dots=$('preview-dots');if(dots)dots.innerHTML='';
+    const genSt=$('preview-gen-status');if(genSt){genSt.style.display='none';genSt.textContent='';}
+    const ac=$('approved-count');if(ac)ac.textContent='';
+    const cb=$('confirm-exam-btn');if(cb)cb.style.display='none';
+    const gb=$('gen-preview-btn');if(gb){gb.disabled=false;gb.innerHTML='🤖 Generate &amp; Preview All Questions';}
+    setTimeout(()=>pp.scrollIntoView({behavior:'smooth',block:'nearest'}),400);
+  }
 }
 
 /* ══ QUESTION PREVIEW SYSTEM ══ */
