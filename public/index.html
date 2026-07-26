@@ -758,8 +758,19 @@ function injectSourceBadge(){
   }
   st.insertBefore(badge,st.firstChild);
 }
-function nextQ(){G.qIdx++;loadQ();}
-function skipQ(){clearTimer();G.combo=0;nextQ();}
+function nextQ(){
+  if(_examState&&!_examState.examEnded){
+    // In exam mode, examAnswered() already handles advancing.
+    // nextQ() calls from game renderers are ignored — examAnswered controls flow.
+    return;
+  }
+  G.qIdx++;loadQ();
+}
+function skipQ(){
+  clearTimer();
+  if(_examState&&!_examState.examEnded){examAnswered(null,'skipped');return;}
+  G.combo=0;G.qIdx++;loadQ();
+}
 function showHint(){const b=$('hint-box');if(b)b.classList.add('vis');}
 
 /* === MEMORY FLIP === */
@@ -2220,6 +2231,7 @@ function startExamTotalTimer(){
 /* ── Load Exam Question ── */
 function loadExamQ(){
   const es=_examState,cfg=es.config;
+  console.log(`[EXAM] loadExamQ: qIdx=${es.qIdx}, total=${es.qs.length}, qs=`,es.qs.map(q=>q.topicName+'['+q.type+']'));
   if(es.qIdx>=es.qs.length){finishExam('completed');return;}
   clearInterval(es.qTimerInt);
 
@@ -2334,6 +2346,7 @@ function interceptExamAnswers(container){
 let _origOnCorrect,_origOnWrong;
 function examAnswered(isCorrect,reason){
   if(_examState.examEnded)return;
+  console.log(`[EXAM] examAnswered: qIdx=${_examState.qIdx}, total=${_examState.qs.length}, correct=${isCorrect}, reason=${reason}`);
   clearInterval(_examState.qTimerInt);
   const q=_examState.qs[_examState.qIdx];
   const cfg=_examState.config;
