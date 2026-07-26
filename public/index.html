@@ -1901,8 +1901,16 @@ async function generatePreview(){
     }catch(e){console.warn('Preview AI failed for',sec.id);}
     const queue=buildQueueFromData(topic,data);
     const src=queue&&queue.length>0?queue:buildQueueFromData(topic,topic.data);
-    for(let i=0;i<sec.qCount;i++){
-      _preview.qs.push({...src[i%Math.max(1,src.length)],topicId:sec.id,topicName:topic.n,topicIcon:topic.icon,isAI});
+
+    // Single-game types (memory, sortbasket, venn, maze) produce 1 playable unit
+    // For these, treat qCount as 1 regardless of teacher setting
+    const singleGameTypes=['memory','sortbasket','venn'];
+    const effectiveCount=singleGameTypes.includes(topic.gt)?1:sec.qCount;
+
+    for(let i=0;i<effectiveCount;i++){
+      // Clone deeply so each question is a distinct object
+      const baseQ=src[i%Math.max(1,src.length)];
+      _preview.qs.push({...baseQ,d:{...baseQ.d},topicId:sec.id,topicName:topic.n,topicIcon:topic.icon,isAI,_uid:`${sec.id}_${i}_${Date.now()}`});
     }
     if(si<_examConfig.sections.length-1)await new Promise(r=>setTimeout(r,700));
   }
@@ -2042,18 +2050,20 @@ function renderPreviewDots(){
 }
 
 function confirmExamReady(){
-  // Filter out removed questions and update exam config
   const kept=_preview.qs.filter((_,i)=>!_preview.removed.has(i));
   if(kept.length===0){alert('No questions approved!');return;}
-  // Store the previewed+approved questions directly
+  // Update totalQ and totalMarks based on actual kept questions
   _examConfig._previewedQs=kept;
+  _examConfig.totalQ=kept.length;
+  _examConfig.totalMarks=kept.length*_examConfig.marksPerQ;
   localStorage.setItem('mq_exam_config',JSON.stringify(_examConfig));
   const pp=$('preview-panel');
   if(pp){
-    pp.innerHTML=`<div style="text-align:center;padding:1rem;">
+    pp.innerHTML=`<div style="text-align:center;padding:1.2rem;">
       <div style="font-size:1.8rem;margin-bottom:.4rem;">🎓</div>
       <div style="font-size:.95rem;font-weight:800;color:var(--green);margin-bottom:.3rem;">Exam Published!</div>
-      <div style="font-size:.78rem;color:var(--muted);">${kept.length} questions approved and ready for students.</div>
+      <div style="font-size:.78rem;color:var(--muted);">${kept.length} question${kept.length>1?'s':''} approved · ${_examConfig.totalMarks} marks total</div>
+      <div style="font-size:.72rem;color:var(--teal);margin-top:.4rem;font-weight:700;">Students can now take the exam →</div>
     </div>`;
   }
 }
@@ -2071,9 +2081,11 @@ function renderExamStudentView(){
     return;
   }
   if(tb)tb.textContent=cfg.name;
+  const realQ=cfg._previewedQs?cfg._previewedQs.length:cfg.totalQ;
+  const realM=cfg._previewedQs?cfg._previewedQs.length*cfg.marksPerQ:cfg.totalMarks;
   const timerStr=cfg.totalTimer>0?`${cfg.totalTimer/60} min total · `:'';
   const qTimerStr=cfg.qTimer>0?`${cfg.qTimer}s per question · `:'';
-  if(mb)mb.textContent=`${timerStr}${qTimerStr}${cfg.totalQ} questions · ${cfg.totalMarks} marks`;
+  if(mb)mb.textContent=`${timerStr}${qTimerStr}${realQ} questions · ${realM} marks`;
   if(sl){
     sl.style.display='block';
     sl.innerHTML=`<div style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Sections in this exam:</div>`+
@@ -2169,8 +2181,11 @@ async function startExam(){
 
     const queue=buildQueueFromData(topic,data);
     const src=queue&&queue.length>0?queue:buildQueueFromData(topic,topic.data);
-    for(let i=0;i<sec.qCount;i++){
-      allQs.push({...src[i%Math.max(1,src.length)],topicId:sec.id,topicName:topic.n,topicIcon:topic.icon,isAI:usedAI});
+    const singleGameTypes=['memory','sortbasket','venn'];
+    const effectiveCount=singleGameTypes.includes(topic.gt)?1:sec.qCount;
+    for(let i=0;i<effectiveCount;i++){
+      const baseQ=src[i%Math.max(1,src.length)];
+      allQs.push({...baseQ,d:{...baseQ.d},topicId:sec.id,topicName:topic.n,topicIcon:topic.icon,isAI:usedAI,_uid:`${sec.id}_${i}_${Date.now()}`});
     }
   }
 
